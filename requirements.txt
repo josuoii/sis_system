@@ -16,3 +16,4 @@ arabic-reshaper>=3.0.0
 python-bidi>=0.4.2
 channels-redis>=4.0.0
 xhtml2pdf>=0.2.17
+gunicorn>=21.0.0
