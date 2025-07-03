@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if object %}Edit{% else %}Create{% endif %} Intervention - SIS
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-fade-in">
+  <!-- Header -->
+  <div class="mb-8">
+    <nav class="text-sm breadcrumbs mb-2">
+      <a href="{% url 'intervention:intervention-list' %}" class="text-blue-600 hover:text-blue-700">Interventions</a>
+      <span class="mx-2 text-blue-200">/</span>
+      {% if object %}
+      <a href="{% url 'intervention:intervention-detail' object.pk %}" class="text-blue-600 hover:text-blue-700">{{ object.title }}</a>
+      <span class="mx-2 text-blue-200">/</span>
+      <span class="text-blue-500">Edit</span>
+      {% else %}
+      <span class="text-blue-500">Create New Intervention</span>
+      {% endif %}
+    </nav>
+    <h1 class="text-2xl font-bold text-blue-900">
+      {% if object %}
+        <i class="fas fa-edit mr-2 text-blue-600"></i>Edit Intervention
+      {% else %}
+        <i class="fas fa-plus mr-2 text-blue-600"></i>Create New Intervention
+      {% endif %}
+    </h1>
+  </div>
+
+  <!-- Form -->
+  <div class="bg-white border border-blue-100 rounded-2xl p-8 shadow">
+    <form method="post" class="space-y-8">
+      {% csrf_token %}
+      
+      <!-- Basic Information Section -->
+      <div class="space-y-6">
+        <div class="border-b border-blue-100 pb-4">
+          <h2 class="text-lg font-bold text-blue-700 flex items-center">
+            <span class="bg-blue-100 text-blue-600 rounded-full p-2 mr-2"><i class="fas fa-info-circle"></i></span>Basic Information
+          </h2>
+          <p class="text-blue-500 text-sm mt-1">Essential details about the intervention</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Student Field -->
+          <div>
+            <label for="{{ form.student.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-user-graduate mr-2 text-blue-600"></i>Student *
+            </label>
+            {{ form.student }}
+            {% if form.student.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.student.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">Select the student who will receive this intervention</p>
+          </div>
+
+          <!-- Title Field -->
+          <div>
+            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-heading mr-2 text-blue-600"></i>Intervention Title *
+            </label>
+            {{ form.title }}
+            {% if form.title.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.title.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">A clear, descriptive title for this intervention</p>
+          </div>
+
+          <!-- Status Field -->
+          <div>
+            <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-tasks mr-2 text-blue-600"></i>Status *
+            </label>
+            {{ form.status }}
+            {% if form.status.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.status.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">Current status of the intervention</p>
+          </div>
+
+          <!-- Collaborating Teachers Field -->
+          <div>
+            <label for="{{ form.collaborating_teachers.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-users mr-2 text-blue-600"></i>Collaborating Teachers
+            </label>
+            {{ form.collaborating_teachers }}
+            {% if form.collaborating_teachers.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.collaborating_teachers.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">Select additional teachers who will help with this intervention</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Section -->
+      <div class="space-y-6">
+        <div class="border-b border-blue-100 pb-4">
+          <h2 class="text-lg font-bold text-blue-700 flex items-center">
+            <span class="bg-blue-100 text-blue-600 rounded-full p-2 mr-2"><i class="fas fa-calendar-alt"></i></span>Timeline
+          </h2>
+          <p class="text-blue-500 text-sm mt-1">Set the duration and schedule for this intervention</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Start Date Field -->
+          <div>
+            <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-calendar-plus mr-2 text-blue-600"></i>Start Date *
+            </label>
+            {{ form.start_date }}
+            {% if form.start_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.start_date.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">When will this intervention begin?</p>
+          </div>
+
+          <!-- End Date Field -->
+          <div>
+            <label for="{{ form.end_date.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-calendar-times mr-2 text-blue-400"></i>End Date (Optional)
+            </label>
+            {{ form.end_date }}
+            {% if form.end_date.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.end_date.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">Expected completion date (leave blank for ongoing)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <div class="space-y-6">
+        <div class="border-b border-blue-100 pb-4">
+          <h2 class="text-lg font-bold text-blue-700 flex items-center">
+            <span class="bg-blue-100 text-blue-600 rounded-full p-2 mr-2"><i class="fas fa-file-alt"></i></span>Intervention Details
+          </h2>
+          <p class="text-blue-500 text-sm mt-1">Detailed description, goals, and strategies</p>
+        </div>
+
+        <!-- Description Field -->
+        <div>
+          <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+            <i class="fas fa-align-left mr-2 text-blue-600"></i>Description *
+          </label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.description.errors.as_text }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-blue-500">Describe the student\'s needs and the purpose of this intervention</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Goals Field -->
+          <div>
+            <label for="{{ form.goals.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-bullseye mr-2 text-blue-400"></i>Goals
+            </label>
+            {{ form.goals }}
+            {% if form.goals.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.goals.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">Specific, measurable goals for this intervention</p>
+          </div>
+
+          <!-- Strategies Field -->
+          <div>
+            <label for="{{ form.strategies.id_for_label }}" class="block text-sm font-medium text-blue-700 mb-2">
+              <i class="fas fa-chess-knight mr-2 text-blue-400"></i>Strategies *
+            </label>
+            {{ form.strategies }}
+            {% if form.strategies.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.strategies.errors.as_text }}</p>
+            {% endif %}
+            <p class="mt-1 text-xs text-blue-500">Specific methods and approaches to be used</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-8 border-t border-blue-100">
+        <a href="{% if object %}{% url 'intervention:intervention-detail' object.pk %}{% else %}{% url 'intervention:intervention-list' %}{% endif %}" 
+           class="px-6 py-3 border border-blue-200 rounded-lg text-blue-700 hover:bg-blue-50 transition-colors text-center font-medium">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </a>
+        
+        <button type="submit" 
+                class="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-semibold shadow transition">
+          <i class="fas fa-save mr-2"></i>
+          {% if object %}Update{% else %}Create{% endif %} Intervention
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Help Section -->
+  <div class="mt-8 bg-white border border-blue-100 rounded-2xl p-6 shadow">
+    <h3 class="text-lg font-bold text-blue-700 mb-4 flex items-center">
+      <i class="fas fa-lightbulb mr-2 text-blue-400"></i>Best Practices
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+      <div>
+        <h4 class="font-medium text-blue-700 mb-2 flex items-center">
+          <i class="fas fa-edit mr-2 text-blue-500"></i>Writing Descriptions
+        </h4>
+        <ul class="space-y-1 text-blue-600">
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>Include current performance level</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>Describe specific challenges</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>Reference assessment data</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-blue-700 mb-2 flex items-center">
+          <i class="fas fa-target mr-2 text-blue-500"></i>SMART Goals
+        </h4>
+        <ul class="space-y-1 text-blue-600">
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i><strong>S</strong>pecific and clear</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i><strong>M</strong>easurable outcomes</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i><strong>A</strong>chievable targets</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i><strong>R</strong>elevant to needs</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i><strong>T</strong>ime-bound</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-blue-700 mb-2 flex items-center">
+          <i class="fas fa-chess-knight mr-2 text-blue-500"></i>Effective Strategies
+        </h4>
+        <ul class="space-y-1 text-blue-600">
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>Evidence-based approaches</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>Differentiated instruction</li>
+          <li class="flex items-start"><i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>Regular progress monitoring</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Clean form styling */
+input, textarea, select {
+  background-color: white !important;
+  border: 1px solid #d1d5db !important;
+  color: #374151 !important;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background-color: white !important;
+}
+
+input:hover, textarea:hover, select:hover {
+  border-color: #9ca3af !important;
+}
+
+/* Textarea specific styling */
+textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Select field styling */
+select {
+  background-image: url(\"data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'%3e%3c/svg%3e\");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* Multi-select specific styling */
+select[multiple] {
+  background-image: none;
+  padding-right: 0.75rem;
+  min-height: 120px;
+}
+
+select[multiple] option {
+  background-color: white;
+  color: #374151;
+  padding: 0.5rem;
+  margin: 0.125rem;
+  border-radius: 0.25rem;
+}
+
+select[multiple] option:checked {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+}
+
+/* Custom scrollbar for textareas and multi-selects */
+textarea::-webkit-scrollbar,
+select[multiple]::-webkit-scrollbar {
+  width: 8px;
+}
+
+textarea::-webkit-scrollbar-track,
+select[multiple]::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb,
+select[multiple]::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover,
+select[multiple]::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Placeholder styling */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Date input specific styling */
+input[type="date"] {
+  color-scheme: light;
+}
+
+/* Error state styling */
+input.error, textarea.error, select.error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+/* Success state styling for filled fields */
+input:not(:placeholder-shown):valid,
+textarea:not(:placeholder-shown):valid,
+select:valid {
+  border-color: #10b981 !important;
+}
+
+/* Animation for form sections */
+.space-y-6 > div {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Draft save indicator */
+.draft-indicator {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #10b981;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        // Set initial height
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.max(120, textarea.scrollHeight) + 'px';
+        
+        // Auto-resize on input
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.max(120, this.scrollHeight) + 'px';
+        });
+    });
+    
+    // Enhanced multi-select functionality
+    const multiSelects = document.querySelectorAll('select[multiple]');
+    multiSelects.forEach(select => {
+        // Add visual feedback for selected options
+        select.addEventListener('change', function() {
+            const selectedCount = this.selectedOptions.length;
+            const label = this.previousElementSibling;
+            const baseText = label.textContent.split(' (')[0];
+            
+            if (selectedCount > 0) {
+                label.textContent = `${baseText} (${selectedCount} selected)`;
+            } else {
+                label.textContent = baseText;
+            }
+        });
+    });
+    
+    // Form validation enhancement
+    const form = document.querySelector('form');
+    const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+    
+    // Add real-time validation feedback
+    requiredFields.forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.checkValidity()) {
+                this.classList.remove('error');
+                this.classList.add('valid');
+            } else {
+                this.classList.add('error');
+                this.classList.remove('valid');
+            }
+        });
+    });
+
+    // Initial validation check on load
+    form.addEventListener('DOMContentLoaded', function() {
+        requiredFields.forEach(field => {
+            if (field.value.trim() !== '') {
+                if (field.checkValidity()) {
+                    field.classList.add('valid');
+                } else {
+                    field.classList.add('error');
+                }
+            }
+        });
+    });
+
+    // Handle form submission validation
+    form.addEventListener('submit', function(event) {
+        let formIsValid = true;
+        requiredFields.forEach(field => {
+            if (!field.checkValidity()) {
+                field.classList.add('error');
+                field.classList.remove('valid');
+                formIsValid = false;
+            } else {
+                field.classList.remove('error');
+                field.classList.add('valid');
+            }
+        });
+
+        if (!formIsValid) {
+            event.preventDefault(); // Prevent form submission if validation fails
+            alert('Please fill in all required fields correctly.');
+        }
+    });
+
+    // Date input placeholder for better UX
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.type = 'date';
+        });
+        input.addEventListener('blur', function() {
+            if (!this.value) {
+                this.type = 'text';
+            }
+        });
+        if (!input.value) {
+            input.type = 'text';
+        }
+    });
+
+    // Dynamic breadcrumbs for edit mode
+    const interventionTitle = document.querySelector('h1.text-2xl').textContent.trim();
+    const breadcrumbs = document.querySelector('nav.breadcrumbs');
+    if (breadcrumbs && interventionTitle.includes('Edit Intervention')) {
+        const interventionId = window.location.pathname.split('/').slice(-2, -1)[0]; // Assuming URL like /interventions/123/edit/
+        const detailLink = document.createElement('a');
+        detailLink.href = `/interventions/${interventionId}/`; // Adjust URL as per your Django urls.py
+        detailLink.className = 'text-blue-600 hover:text-blue-700';
+        detailLink.textContent = interventionTitle.replace('Edit Intervention', '').trim();
+
+        const separator1 = document.createElement('span');
+        separator1.className = 'mx-2 text-blue-200';
+        separator1.textContent = ' / ';
+
+        const currentSpan = document.createElement('span');
+        currentSpan.className = 'text-blue-500';
+        currentSpan.textContent = 'Edit';
+
+        breadcrumbs.appendChild(separator1);
+        breadcrumbs.appendChild(detailLink);
+        breadcrumbs.appendChild(document.createTextNode(' ')); // Add a space
+        breadcrumbs.appendChild(currentSpan);
+    }
+});
+</script>
+{% endblock content %}
+

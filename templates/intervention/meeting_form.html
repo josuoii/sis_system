@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Edit Meeting{% else %}Schedule New Meeting{% endif %} - PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="text-sm breadcrumbs mb-2">
+            <a href="{% url 'intervention:meeting-list' %}" class="text-accent-600 hover:text-accent-500 transition-colors">Meetings</a>
+            <span class="mx-2 text-gray-400">/</span>
+            {% if form.instance.pk %}
+                <span class="text-gray-600">Edit Meeting</span>
+            {% else %}
+                <span class="text-gray-600">Schedule New Meeting</span>
+            {% endif %}
+        </nav>
+        <h1 class="text-3xl font-bold text-primary-700">
+            {% if form.instance.pk %}
+                <i class="fas fa-edit mr-3 text-accent-600"></i>Edit Meeting
+            {% else %}
+                <i class="fas fa-calendar-plus mr-3 text-accent-600"></i>Schedule New Meeting
+            {% endif %}
+        </h1>
+        {% if intervention %}
+        <p class="text-gray-600 mt-2">Related to intervention: <span class="font-medium text-primary-600">{{ intervention.title }}</span></p>
+        {% endif %}
+    </div>
+
+    <!-- Form Card -->
+    <div class="clean-card rounded-xl p-8">
+        <form method="post" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Meeting Participants Section -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-primary-700 border-b border-gray-200 pb-2">
+                    <i class="fas fa-users mr-2 text-accent-600"></i>Meeting Participants
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% if form.teacher %}
+                    <div>
+                        <label for="{{ form.teacher.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user-tie mr-2"></i>Teacher *
+                        </label>
+                        {{ form.teacher }}
+                        {% if form.teacher.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.teacher.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if form.student %}
+                    <div>
+                        <label for="{{ form.student.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user-graduate mr-2"></i>Student *
+                        </label>
+                        {{ form.student }}
+                        {% if form.student.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.student.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if form.parent %}
+                    <div>
+                        <label for="{{ form.parent.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user-friends mr-2"></i>Parent/Guardian
+                        </label>
+                        {{ form.parent }}
+                        {% if form.parent.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.parent.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Meeting Details Section -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-primary-700 border-b border-gray-200 pb-2">
+                    <i class="fas fa-calendar-alt mr-2 text-accent-600"></i>Meeting Details
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.scheduled_time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-clock mr-2"></i>Date & Time *
+                        </label>
+                        {{ form.scheduled_time }}
+                        {% if form.scheduled_time.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.scheduled_time.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.intervention %}
+                    <div>
+                        <label for="{{ form.intervention.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-clipboard-list mr-2"></i>Related Intervention
+                        </label>
+                        {{ form.intervention }}
+                        {% if form.intervention.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.intervention.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Agenda Section -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-primary-700 border-b border-gray-200 pb-2">
+                    <i class="fas fa-list-ul mr-2 text-accent-600"></i>Meeting Agenda
+                </h3>
+                
+                <div>
+                    <label for="{{ form.agenda.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Agenda & Discussion Topics *
+                    </label>
+                    {{ form.agenda }}
+                    <p class="mt-1 text-sm text-gray-500">
+                        Outline the key topics, concerns, or goals to be discussed in this meeting.
+                    </p>
+                    {% if form.agenda.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.agenda.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'intervention:meeting-list' %}" 
+                   class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors clean-button">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 bg-accent-600 hover:bg-accent-700 rounded-lg text-white font-medium transition-colors clean-button">
+                    <i class="fas fa-{% if form.instance.pk %}save{% else %}calendar-check{% endif %} mr-2"></i>
+                    {% if form.instance.pk %}Update Meeting{% else %}Schedule Meeting{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Style all form inputs consistently
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        if (input.type !== 'radio' && input.type !== 'checkbox' && input.type !== 'file') {
+            input.classList.add(
+                'w-full', 
+                'px-3', 
+                'py-2', 
+                'border', 
+                'border-gray-300', 
+                'rounded-lg', 
+                'text-sm', 
+                'focus:outline-none', 
+                'focus:ring-2', 
+                'focus:ring-accent-500', 
+                'focus:border-accent-500', 
+                'transition-colors'
+            );
+        }
+    });
+
+    // Set minimum datetime to current time
+    const datetimeField = document.querySelector('input[type="datetime-local"]');
+    if (datetimeField && !datetimeField.value) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        datetimeField.setAttribute('min', now.toISOString().slice(0, 16));
+    }
+
+    // Auto-resize textarea
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Initial resize
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+});
+</script>
+{% endblock %}

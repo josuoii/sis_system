@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}{{ intervention.title }} - Intervention Details{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div>
+      <nav class="text-sm mb-2">
+        <a href="{% url 'intervention:intervention-list' %}" class="text-accent-600 hover:text-accent-700">Interventions</a>
+        <span class="mx-2 text-gray-400">/</span>
+        <span class="text-gray-600">{{ intervention.title }}</span>
+      </nav>
+      <h1 class="text-2xl font-bold text-gray-900">{{ intervention.title }}</h1>
+      <p class="text-gray-600 mt-1">For: <a href="{% url 'intervention:student-detail' intervention.student.pk %}" class="text-accent-600 hover:text-accent-700">{{ intervention.student.user_profile.user.get_full_name }}</a></p>
+    </div>
+    
+    <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
+      {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+      <a href="{% url 'intervention:progress-update' intervention.pk %}" 
+         class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-sm font-medium transition-colors clean-button">
+        <i class="fas fa-chart-line mr-2"></i>Add Progress
+      </a>
+      <a href="{% url 'intervention:intervention-update' intervention.pk %}" 
+         class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-white text-sm font-medium transition-colors clean-button">
+        <i class="fas fa-edit mr-2"></i>Edit Plan
+      </a>
+      <form method="post" action="{% url 'intervention:intervention-delete' intervention.pk %}" class="inline delete-intervention-form">
+        {% csrf_token %}
+        <button type="button" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm font-medium transition-colors clean-button delete-intervention-btn">
+          <i class="fas fa-trash mr-2"></i>Delete Plan
+        </button>
+      </form>
+      {% endif %}
+      <a href="{% url 'intervention:intervention-list' %}" 
+         class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white text-sm font-medium transition-colors clean-button">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Interventions
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-8">
+      <!-- Intervention Information -->
+      <div class="clean-card rounded-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-info-circle mr-2 text-accent-600"></i>Intervention Information
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">Student</label>
+            <p class="text-gray-900 font-medium">{{ intervention.student.user_profile.user.get_full_name }}</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">Status</label>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
+              {% if intervention.status == 'ACTIVE' %}bg-green-100 text-green-800
+              {% elif intervention.status == 'COMPLETED' %}bg-blue-100 text-blue-800
+              {% elif intervention.status == 'ON_HOLD' %}bg-yellow-100 text-yellow-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ intervention.get_status_display }}
+            </span>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">Start Date</label>
+            <p class="text-gray-900 font-medium">{{ intervention.start_date|date:"M j, Y" }}</p>
+          </div>
+          
+          {% if intervention.end_date %}
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">End Date</label>
+            <p class="text-gray-900 font-medium">{{ intervention.end_date|date:"M j, Y" }}</p>
+          </div>
+          {% endif %}
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-600 mb-1">Description</label>
+            <p class="text-gray-900">{{ intervention.description|default:"N/A" }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goals -->
+      <div class="clean-card rounded-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-bullseye mr-2 text-accent-600"></i>Goals
+        </h2>
+        {% if intervention.goals.all %}
+        <ul class="space-y-3">
+          {% for goal in intervention.goals.all %}
+          <li class="flex items-start space-x-3">
+            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+            <p class="text-gray-900">{{ goal.description }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-600">No goals defined for this intervention.</p>
+        {% endif %}
+      </div>
+
+      <!-- Progress Updates -->
+      <div class="clean-card rounded-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-chart-line mr-2 text-accent-600"></i>Progress Updates
+        </h2>
+        {% if intervention.progress_updates.all %}
+        <div class="space-y-4">
+          {% for update in intervention.progress_updates.all %}
+          <div class="border-b border-gray-200 pb-4 last:border-b-0">
+            <div class="flex justify-between items-center mb-2">
+              <p class="text-sm font-medium text-gray-900">{{ update.date|date:"M j, Y" }}</p>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                {% if update.score >= 75 %}bg-green-100 text-green-800
+                {% elif update.score >= 50 %}bg-yellow-100 text-yellow-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                Score: {{ update.score }}%
+              </span>
+            </div>
+            <p class="text-gray-700">{{ update.notes }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-600">No progress updates yet.</p>
+        {% endif %}
+        {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+        <div class="mt-6 text-center">
+          <a href="{% url 'intervention:progress-update' intervention.pk %}" 
+             class="inline-flex items-center px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white rounded-lg font-medium transition-colors clean-button">
+            <i class="fas fa-plus mr-2"></i>Add New Progress Update
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Quick Stats -->
+      <div class="clean-card rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-chart-bar mr-2 text-accent-600"></i>Quick Stats
+        </h3>
+        
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Current Progress</span>
+            <span class="text-gray-900 font-semibold">{{ intervention.progress_score|default:"N/A" }}%</span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Created By</span>
+            <span class="text-gray-900 font-semibold">{{ intervention.created_by.user_profile.user.get_full_name }}</span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Created On</span>
+            <span class="text-gray-900 font-semibold">{{ intervention.created_at|date:"M j, Y" }}</span>
+          </div>
+          
+          {% if intervention.last_modified_by %}
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Last Modified By</span>
+            <span class="text-gray-900 font-semibold">{{ intervention.last_modified_by.user_profile.user.get_full_name }}</span>
+          </div>
+          {% endif %}
+          
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Last Modified On</span>
+            <span class="text-gray-900 font-semibold">{{ intervention.last_modified_at|date:"M j, Y" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Student Info -->
+      <div class="clean-card rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <i class="fas fa-user-graduate mr-2 text-accent-600"></i>Student Information
+        </h3>
+        
+        <div class="space-y-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-full bg-accent-100 flex items-center justify-center text-accent-600">
+              <i class="fas fa-user text-lg"></i>
+            </div>
+            <div>
+              <p class="font-medium text-gray-900">{{ intervention.student.user_profile.user.get_full_name }}</p>
+              <p class="text-sm text-gray-600">Grade {{ intervention.student.grade_level }}</p>
+            </div>
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            {% if intervention.student.iep %}
+            <span class="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">IEP</span>
+            {% endif %}
+            {% if intervention.student.ell %}
+            <span class="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full font-medium">ELL</span>
+            {% endif %}
+          </div>
+          
+          <a href="{% url 'intervention:student-detail' intervention.student.pk %}" 
+             class="block w-full px-4 py-2 bg-accent-600 hover:bg-accent-700 rounded-lg text-white text-center text-sm font-medium transition-colors clean-button">
+            <i class="fas fa-eye mr-2"></i>View Student Profile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.delete-intervention-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const form = btn.closest('form');
+      Swal.fire({
+        title: '<span style="font-size:2rem;font-weight:700;color:#d33;">Confirm Deletion</span>',
+        html: '<div style="font-size:1.1rem;color:#374151;">Are you sure you want to delete this plan?<br><span style="color:#d33;font-size:0.95rem;">This action cannot be undone.</span></div>',
+        icon: 'error',
+        iconHtml: '<i class="fas fa-clipboard-list" style="color:#d33;font-size:2.5rem;"></i>',
+        showCancelButton: true,
+        confirmButtonColor: '#e3342f',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i> Yes, delete',
+        cancelButtonText: '<i class="fas fa-times mr-2"></i> Cancel',
+        customClass: {
+          popup: 'swal2-border-radius',
+          confirmButton: 'swal2-confirm-custom',
+          cancelButton: 'swal2-cancel-custom'
+        },
+        buttonsStyling: false
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.submit();
+        }
+      });
+    });
+  });
+});
+
+const style = document.createElement('style');
+style.innerHTML = `
+  .swal2-border-radius { border-radius: 1.5rem !important; }
+  .swal2-confirm-custom {
+    background: linear-gradient(90deg,#e3342f,#f87171);
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    padding: 0.75em 2em;
+    margin: 0 0.5em;
+  }
+  .swal2-cancel-custom {
+    background: #f3f4f6;
+    color: #374151 !important;
+    font-weight: 500;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    padding: 0.75em 2em;
+    margin: 0 0.5em;
+  }
+  .swal2-cancel-custom:hover {
+    background: #e0e7ef;
+  }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
+

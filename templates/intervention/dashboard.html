@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-8xl mx-auto px-6 py-8">
+    <!-- Welcome Section -->
+    <div class="holographic-card rounded-xl p-6 mb-8 shadow-xl">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-white mb-2">
+                    <i class="fas fa-sun mr-2 text-yellow-400"></i>
+                    Welcome back, {{ user.get_full_name }}!
+                </h2>
+                <p class="text-gray-300">
+                    {% now "l, F jS, Y" %} - Here's what's happening today.
+                </p>
+            </div>
+            {% if unread_messages > 0 %}
+            <div class="bg-primary-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                <i class="fas fa-envelope mr-2"></i>
+                {{ unread_messages }} new message{{ unread_messages|pluralize }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Role-Specific Dashboard Content -->
+    {% if user.userprofile.user_type == 'TEACHER' %}
+        <!-- Teacher Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Stats Cards -->
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-users text-primary-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ stats.total_students }}</h3>
+                <p class="text-gray-400">Total Students</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-clipboard-list text-green-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ stats.active_interventions }}</h3>
+                <p class="text-gray-400">Active Interventions</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-calendar-check text-yellow-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ upcoming_meetings|length }}</h3>
+                <p class="text-gray-400">Upcoming Meetings</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-percentage text-blue-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ stats.attendance_rate|floatformat:1 }}%</h3>
+                <p class="text-gray-400">Attendance Rate</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Recent Interventions -->
+            <div class="lg:col-span-2 holographic-card rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-white">
+                        <i class="fas fa-clipboard-list mr-2"></i>Recent Interventions
+                    </h3>
+                    <a href="{% url 'intervention:intervention-list' %}" class="text-primary-400 hover:text-primary-300 text-sm">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="space-y-4">
+                    {% for intervention in interventions %}
+                    <div class="flex justify-between items-center p-4 hover:bg-futuristic-mid/50 rounded-lg transition-colors">
+                        <div>
+                            <h4 class="font-medium text-white">
+                                <a href="{% url 'intervention:intervention-detail' intervention.pk %}" class="hover:text-primary-400">
+                                    {{ intervention.title }}
+                                </a>
+                            </h4>
+                            <p class="text-sm text-gray-400 mt-1">
+                                <i class="fas fa-user-graduate mr-1"></i>{{ intervention.student }}
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-calendar-alt mr-1"></i>{{ intervention.start_date|date:"M d, Y" }}
+                            </p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full 
+                            {% if intervention.status == 'ACTIVE' %}bg-green-900/50 text-green-300
+                            {% elif intervention.status == 'DRAFT' %}bg-yellow-900/50 text-yellow-300
+                            {% else %}bg-gray-700 text-gray-300{% endif %}">
+                            {{ intervention.get_status_display }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No interventions found
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Upcoming Meetings -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-calendar-alt mr-2"></i>Upcoming Meetings
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for meeting in upcoming_meetings %}
+                    <div class="p-4 border border-futuristic-light rounded-lg">
+                        <h4 class="font-medium text-white">{{ meeting.student }}</h4>
+                        <p class="text-sm text-gray-300 mt-1">
+                            <i class="fas fa-clock mr-1"></i>{{ meeting.scheduled_time|date:"M j, g:i A" }}
+                        </p>
+                        <p class="text-sm text-gray-400 mt-2">
+                            <i class="fas fa-clipboard mr-1"></i>{{ meeting.agenda|truncatechars:50 }}
+                        </p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No upcoming meetings
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    {% elif user.userprofile.user_type == 'ADMIN' %}
+        <!-- Admin Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Stats Cards -->
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-user-graduate text-primary-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ system_stats.total_students }}</h3>
+                <p class="text-gray-400">Total Students</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-chalkboard-teacher text-green-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ system_stats.total_teachers }}</h3>
+                <p class="text-gray-400">Total Teachers</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-play-circle text-yellow-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ system_stats.active_interventions }}</h3>
+                <p class="text-gray-400">Active Interventions</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check-circle text-blue-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ system_stats.completed_interventions }}</h3>
+                <p class="text-gray-400">Completed</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Recent Users -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-users mr-2"></i>Recent Users
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for user_profile in recent_users %}
+                    <div class="flex items-center p-3 hover:bg-futuristic-mid/50 rounded-lg transition-colors">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white mr-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-white">{{ user_profile.user.get_full_name }}</h4>
+                            <p class="text-sm text-gray-400">{{ user_profile.get_user_type_display }}</p>
+                        </div>
+                        <div class="ml-auto text-sm text-gray-400">
+                            {{ user_profile.created_at|date:"M d" }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No recent users
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Interventions -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-clipboard-list mr-2"></i>Recent Interventions
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for intervention in recent_interventions %}
+                    <div class="p-4 border border-futuristic-light rounded-lg">
+                        <h4 class="font-medium text-white">{{ intervention.title }}</h4>
+                        <p class="text-sm text-gray-400 mt-1">
+                            <i class="fas fa-user-graduate mr-1"></i>{{ intervention.student }}
+                        </p>
+                        <p class="text-sm text-gray-400">
+                            <i class="fas fa-chalkboard-teacher mr-1"></i>{{ intervention.created_by }}
+                        </p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No recent interventions
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-history mr-2"></i>Recent Activities
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for activity in recent_activities %}
+                    <div class="p-4 border border-futuristic-light rounded-lg">
+                        <div class="flex justify-between">
+                            <div>
+                                <h4 class="font-medium text-white">{{ activity.action }}</h4>
+                                <p class="text-sm text-gray-400 mt-1">
+                                    by {{ activity.user.get_full_name|default:activity.user.username }}
+                                </p>
+                            </div>
+                            <span class="text-xs text-gray-500">{{ activity.timestamp|timesince }} ago</span>
+                        </div>
+                        {% if activity.details %}
+                        <p class="text-xs text-gray-400 mt-2">{{ activity.details|truncatechars:60 }}</p>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No recent activities
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    {% elif user.userprofile.user_type == 'STUDENT' %}
+        <!-- Student Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Stats Cards -->
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-clipboard-list text-primary-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ interventions.count }}</h3>
+                <p class="text-gray-400">My Interventions</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-bullseye text-green-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ goals.count }}</h3>
+                <p class="text-gray-400">Active Goals</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-calendar-check text-yellow-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ upcoming_meetings|length }}</h3>
+                <p class="text-gray-400">Upcoming Meetings</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- My Goals -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-bullseye mr-2"></i>My Goals
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for goal in goals %}
+                    <div class="p-4 border border-futuristic-light rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-medium text-white">{{ goal.description|truncatechars:40 }}</h4>
+                            <span class="text-xs bg-primary-900/50 text-primary-300 px-2 py-1 rounded">
+                                {{ goal.target_date|date:"M d" }}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mb-1">
+                            <div class="bg-primary-500 h-2 rounded-full" style="width: {{ goal.completion_percentage|default:0 }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-400 text-right">
+                            {{ goal.completion_percentage|default:0|floatformat:0 }}% complete
+                        </p>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No goals set yet
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- My Interventions -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-clipboard-list mr-2"></i>My Interventions
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for intervention in interventions %}
+                    <div class="p-4 border border-futuristic-light rounded-lg">
+                        <h4 class="font-medium text-white">
+                            <a href="{% url 'intervention:intervention-detail' intervention.pk %}" class="hover:text-primary-400">
+                                {{ intervention.title }}
+                            </a>
+                        </h4>
+                        <p class="text-sm text-gray-400 mt-1">
+                            <i class="fas fa-chalkboard-teacher mr-1"></i>{{ intervention.created_by }}
+                        </p>
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="px-2 py-1 text-xs rounded-full 
+                                {% if intervention.status == 'ACTIVE' %}bg-green-900/50 text-green-300
+                                {% elif intervention.status == 'DRAFT' %}bg-yellow-900/50 text-yellow-300
+                                {% else %}bg-gray-700 text-gray-300{% endif %}">
+                                {{ intervention.get_status_display }}
+                            </span>
+                            <span class="text-xs text-gray-400">
+                                {{ intervention.start_date|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No interventions assigned
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    {% elif user.userprofile.user_type == 'PARENT' %}
+        <!-- Parent Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Stats Cards -->
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-child text-primary-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ child_stats|length }}</h3>
+                <p class="text-gray-400">Children</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-clipboard-list text-green-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ interventions.count }}</h3>
+                <p class="text-gray-400">Interventions</p>
+            </div>
+            
+            <div class="holographic-card rounded-xl p-6 text-center">
+                <div class="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-calendar-check text-yellow-400 text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-1">{{ upcoming_meetings|length }}</h3>
+                <p class="text-gray-400">Upcoming Meetings</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Children Overview -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-child mr-2"></i>My Children
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for child in child_stats %}
+                    <div class="p-4 border border-futuristic-light rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white mr-3">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-white">{{ child.child }}</h4>
+                                <p class="text-sm text-gray-400">
+                                    Grade {{ child.child.grade_level }}
+                                    {% if child.child.iep %}
+                                    <span class="ml-2 text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded">IEP</span>
+                                    {% endif %}
+                                    {% if child.child.ell %}
+                                    <span class="ml-1 text-xs bg-yellow-900/50 text-yellow-300 px-2 py-0.5 rounded">ELL</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-3 grid grid-cols-2 gap-2 text-center">
+                            <div class="text-xs bg-green-900/20 text-green-300 px-2 py-1 rounded">
+                                <div class="font-bold">{{ child.active_interventions }}</div>
+                                <div>Active</div>
+                            </div>
+                            <div class="text-xs bg-blue-900/20 text-blue-300 px-2 py-1 rounded">
+                                <div class="font-bold">{{ child.total_interventions }}</div>
+                                <div>Total</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No children registered
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Children's Interventions -->
+            <div class="holographic-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-clipboard-list mr-2"></i>Children's Interventions
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for intervention in interventions %}
+                    <div class="p-4 border border-futuristic-light rounded-lg">
+                        <h4 class="font-medium text-white">
+                            <a href="{% url 'intervention:intervention-detail' intervention.pk %}" class="hover:text-primary-400">
+                                {{ intervention.title }}
+                            </a>
+                        </h4>
+                        <p class="text-sm text-gray-400 mt-1">
+                            <i class="fas fa-user-graduate mr-1"></i>{{ intervention.student }}
+                        </p>
+                        <p class="text-sm text-gray-400">
+                            <i class="fas fa-chalkboard-teacher mr-1"></i>{{ intervention.created_by }}
+                        </p>
+                        <div class="mt-2">
+                            <span class="px-2 py-1 text-xs rounded-full 
+                                {% if intervention.status == 'ACTIVE' %}bg-green-900/50 text-green-300
+                                {% elif intervention.status == 'DRAFT' %}bg-yellow-900/50 text-yellow-300
+                                {% else %}bg-gray-700 text-gray-300{% endif %}">
+                                {{ intervention.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-400">
+                        <i class="fas fa-info-circle mr-2"></i>No interventions for your children
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Quick Actions (for teachers and admins) -->
+    {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+    <div class="fixed bottom-6 right-6 z-50">
+        <div class="relative group">
+            <button class="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all">
+                <i class="fas fa-plus text-xl"></i>
+            </button>
+            
+            <div class="absolute bottom-full right-0 mb-2 w-48 bg-futuristic-mid border border-futuristic-light rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div class="py-1">
+                    <a href="{% url 'intervention:intervention-create' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-futuristic-light hover:text-white transition-colors">
+                        <i class="fas fa-clipboard-list mr-2"></i>New Intervention
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-futuristic-light hover:text-white transition-colors">
+                        <i class="fas fa-bullseye mr-2"></i>New Goal
+                    </a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-futuristic-light hover:text-white transition-colors">
+                        <i class="fas fa-calendar mr-2"></i>Schedule Meeting
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

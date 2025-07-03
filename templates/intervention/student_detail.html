@@ -1,0 +1,624 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student.user_profile.user.get_full_name }} - Student Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto animate-fade-in">
+  <!-- Header Section -->
+  <div class="mb-8">
+    <nav class="text-sm breadcrumbs mb-4">
+      <a href="{% url 'intervention:student-list' %}" class="text-accent-500 hover:text-accent-600">Students</a>
+      <span class="mx-2 text-gray-400">/</span>
+      <span class="text-gray-600">{{ student.user_profile.user.get_full_name }}</span>
+    </nav>
+    
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+      <div class="flex items-center space-x-6">
+        <!-- Student Avatar -->
+        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+          {{ student.user_profile.user.first_name.0 }}{{ student.user_profile.user.last_name.0 }}
+        </div>
+        
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ student.user_profile.user.get_full_name }}</h1>
+          <div class="flex flex-wrap items-center gap-4 text-sm">
+            <span class="flex items-center text-gray-500">
+              <i class="fas fa-graduation-cap mr-2 text-gray-400"></i>
+              Grade {{ student.grade_level }}
+            </span>
+            <span class="flex items-center text-gray-500">
+              <i class="fas fa-calendar mr-2 text-gray-400"></i>
+              Enrolled {{ student.enrollment_date|date:"M j, Y" }}
+            </span>
+            {% if student.iep %}
+            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+              <i class="fas fa-universal-access mr-1"></i>IEP
+            </span>
+            {% endif %}
+            {% if student.ell %}
+            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+              <i class="fas fa-globe mr-1"></i>ELL
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap gap-2">
+        {% if user.userprofile.user_type in 'TEACHER,ADMIN' %}
+        <a href="{% url 'intervention:intervention-create' %}?student={{ student.pk }}" 
+           class="clean-button px-4 py-2 bg-accent-600 hover:bg-accent-700 rounded-md text-white text-sm">
+          <i class="fas fa-plus mr-2"></i>Create Intervention
+        </a>
+        {% endif %}
+        
+        <div class="relative group">
+          <button class="clean-button px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-gray-700 text-sm">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <i class="fas fa-file-pdf mr-2 text-red-500"></i>Export Report
+            </a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <i class="fas fa-envelope mr-2 text-blue-500"></i>Send Message
+            </a>
+            {% if user.userprofile.user_type == 'ADMIN' %}
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <i class="fas fa-edit mr-2 text-green-500"></i>Edit Profile
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Student Overview -->
+      <div class="clean-card rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-user mr-2 text-accent-600"></i>Student Overview
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">Personal Information</h3>
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Full Name</span>
+                  <span class="text-gray-900">{{ student.user_profile.user.get_full_name }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Email</span>
+                  <span class="text-gray-900">{{ student.user_profile.user.email|default:"-" }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Grade Level</span>
+                  <span class="text-gray-900">{{ student.get_grade_level_display }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Enrollment Date</span>
+                  <span class="text-gray-900">{{ student.enrollment_date|date:"M j, Y" }}</span>
+                </div>
+              </div>
+            </div>
+            
+            {% if student.user_profile.phone or student.user_profile.address %}
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">Contact Information</h3>
+              <div class="space-y-2">
+                {% if student.user_profile.phone %}
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Phone</span>
+                  <span class="text-gray-900">{{ student.user_profile.phone }}</span>
+                </div>
+                {% endif %}
+                {% if student.user_profile.address %}
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Address</span>
+                  <span class="text-gray-900 text-right max-w-xs">{{ student.user_profile.address }}</span>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">Academic Status</h3>
+              <div class="space-y-3">
+                {% if student.iep %}
+                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div class="flex items-center">
+                    <i class="fas fa-universal-access text-blue-500 mr-2"></i>
+                    <span class="text-blue-700 font-medium">IEP Student</span>
+                  </div>
+                  <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Active</span>
+                </div>
+                {% endif %}
+                
+                {% if student.ell %}
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
+                  <div class="flex items-center">
+                    <i class="fas fa-globe text-green-500 mr-2"></i>
+                    <span class="text-green-700 font-medium">ELL Student</span>
+                  </div>
+                  <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Active</span>
+                </div>
+                {% endif %}
+                
+                {% if not student.iep and not student.ell %}
+                <div class="text-center py-4">
+                  <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+                  <p class="text-gray-500 text-sm">No special academic designations</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            
+            {% if student.special_notes %}
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">Special Notes</h3>
+              <div class="p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                <p class="text-yellow-700 text-sm">{{ student.special_notes }}</p>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Classes -->
+      {% if student.classes.exists %}
+      <div class="clean-card rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-chalkboard mr-2 text-accent-600"></i>Current Classes
+          </h2>
+          <span class="text-gray-500 text-sm">{{ student.classes.count }} class{{ student.classes.count|pluralize:"es" }}</span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% for class in student.classes.all %}
+          <div class="clean-card rounded-lg p-4 hover:border-accent-300">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h3 class="font-medium text-gray-900">{{ class.name }}</h3>
+                <p class="text-sm text-gray-500">{{ class.subject }}</p>
+              </div>
+              <span class="px-2 py-1 bg-accent-100 text-accent-800 text-xs rounded">
+                {{ class.academic_year }}
+              </span>
+            </div>
+            <div class="space-y-1 text-xs text-gray-500">
+              <div><i class="fas fa-user-tie mr-1 text-gray-400"></i>{{ class.teacher.user_profile.user.get_full_name }}</div>
+              {% if class.room_number %}
+              <div><i class="fas fa-door-open mr-1 text-gray-400"></i>Room {{ class.room_number }}</div>
+              {% endif %}
+              {% if class.schedule %}
+              <div><i class="fas fa-clock mr-1 text-gray-400"></i>{{ class.schedule }}</div>
+              {% endif %}
+            </div>
+            <div class="mt-3 pt-3 border-t border-gray-100">
+              <a href="{% url 'intervention:class-detail' class.pk %}" 
+                 class="text-accent-600 hover:text-accent-700 text-xs flex items-center">
+                View Class Details <i class="fas fa-chevron-right ml-1 text-xs"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Active Interventions -->
+      {% if interventions %}
+      <div class="clean-card rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-clipboard-list mr-2 text-accent-600"></i>Interventions
+          </h2>
+          <a href="{% url 'intervention:intervention-list' %}?student={{ student.pk }}" 
+             class="text-accent-600 hover:text-accent-700 text-sm">
+            View All
+          </a>
+        </div>
+        
+        <div class="space-y-3">
+          {% for intervention in interventions %}
+          <div class="clean-card rounded-lg p-4 hover:border-accent-300">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h3 class="font-medium text-gray-900">
+                  <a href="{% url 'intervention:intervention-detail' intervention.pk %}" class="hover:text-accent-600">
+                    {{ intervention.title }}
+                  </a>
+                </h3>
+                <p class="text-sm text-gray-500">{{ intervention.description|truncatechars:80 }}</p>
+              </div>
+              <span class="px-2 py-1 text-xs rounded font-medium
+                {% if intervention.status == 'ACTIVE' %}bg-green-100 text-green-800
+                {% elif intervention.status == 'COMPLETED' %}bg-blue-100 text-blue-800
+                {% elif intervention.status == 'ON_HOLD' %}bg-yellow-100 text-yellow-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ intervention.get_status_display }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center text-xs text-gray-500">
+              <span><i class="fas fa-user-tie mr-1 text-gray-400"></i>{{ intervention.created_by.user_profile.user.get_full_name }}</span>
+              <span><i class="fas fa-calendar mr-1 text-gray-400"></i>{{ intervention.start_date|date:"M j, Y" }}</span>
+            </div>
+            {% if intervention.progress_score %}
+            <div class="mt-2">
+              <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+                <span>Progress</span>
+                <span>{{ intervention.progress_score }}%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-accent-600 h-1.5 rounded-full transition-all" style="width: {{ intervention.progress_score }}%"></div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Academic Performance -->
+      {% if academic_records %}
+      <div class="clean-card rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-chart-bar mr-2 text-accent-600"></i>Academic Performance
+          </h2>
+          <a href="{% url 'intervention:academic-record-list' %}?student={{ student.pk }}" 
+             class="text-accent-600 hover:text-accent-700 text-sm">
+            View All Records
+          </a>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Subject</th>
+                <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Score</th>
+                <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Term</th>
+                <th class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-2">Date</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              {% for record in academic_records %}
+              <tr class="hover:bg-gray-50">
+                <td class="py-3 text-sm text-gray-900">{{ record.subject }}</td>
+                <td class="py-3">
+                  <span class="text-sm font-medium
+                    {% if record.score >= 90 %}text-green-600
+                    {% elif record.score >= 80 %}text-blue-600
+                    {% elif record.score >= 70 %}text-yellow-600
+                    {% else %}text-red-600{% endif %}">
+                    {{ record.score }}%
+                  </span>
+                </td>
+                <td class="py-3 text-sm text-gray-500">{{ record.get_term_display }}</td>
+                <td class="py-3 text-sm text-gray-500">{{ record.date_recorded|date:"M j" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Recent Progress -->
+      {% if recent_progress %}
+      <div class="clean-card rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-trending-up mr-2 text-accent-600"></i>Recent Progress
+          </h2>
+          <span class="text-gray-500 text-sm">Last {{ recent_progress.count }} update{{ recent_progress.count|pluralize }}</span>
+        </div>
+        
+        <div class="space-y-3">
+          {% for progress in recent_progress %}
+          <div class="clean-card rounded-lg p-4 hover:border-accent-300">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h3 class="font-medium text-gray-900">{{ progress.intervention.title }}</h3>
+                <p class="text-sm text-gray-500">{{ progress.notes|truncatechars:60 }}</p>
+              </div>
+              <div class="text-right">
+                <div class="text-lg font-bold
+                  {% if progress.improvement_score >= 8 %}text-green-600
+                  {% elif progress.improvement_score >= 6 %}text-yellow-600
+                  {% else %}text-red-600{% endif %}">
+                  {{ progress.improvement_score }}/10
+                </div>
+                <div class="text-xs text-gray-500">{{ progress.date|date:"M j, Y" }}</div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Learning Style (MBTI) -->
+      {% if mbti_type %}
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+            <h3 class="text-lg font-bold text-blue-700 mb-2">Learning Style (MBTI)</h3>
+            <div class="text-2xl font-extrabold text-blue-600">{{ mbti_type }}</div>
+            <div class="text-blue-500 text-sm">This is the student's most recent MBTI result.</div>
+        </div>
+      {% else %}
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+            <h3 class="text-lg font-bold text-blue-700 mb-2">Learning Style (MBTI)</h3>
+            <div class="text-blue-500 text-sm">No MBTI result available for this student.</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Quick Stats -->
+      <div class="clean-card rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-chart-pie mr-2 text-accent-600"></i>Quick Stats
+        </h3>
+        
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Total Interventions</span>
+            <span class="text-gray-900 font-medium">{{ total_interventions|default:0 }}</span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Active Interventions</span>
+            <span class="text-green-600 font-medium">{{ active_interventions|default:0 }}</span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Completed Goals</span>
+            <span class="text-blue-600 font-medium">{{ completed_goals|default:0 }}</span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Current Classes</span>
+            <span class="text-gray-900 font-medium">{{ student.classes.count }}</span>
+          </div>
+          
+          {% if attendance_rate %}
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Attendance Rate</span>
+            <span class="text-gray-900 font-medium">{{ attendance_rate }}%</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Current Goals -->
+      {% if goals %}
+      <div class="clean-card rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-bullseye mr-2 text-accent-600"></i>Current Goals
+          </h3>
+          <a href="{% url 'intervention:goal-list' %}?student={{ student.pk }}" 
+             class="text-accent-600 hover:text-accent-700 text-sm">
+            View All
+          </a>
+        </div>
+        
+        <div class="space-y-3">
+          {% for goal in goals|slice:":3" %}
+          <div class="clean-card rounded-lg p-3 hover:border-accent-300">
+            <div class="flex justify-between items-start mb-2">
+              <h4 class="font-medium text-gray-900 text-sm">{{ goal.description|truncatechars:40 }}</h4>
+              <span class="px-2 py-1 text-xs rounded {% if goal.completed %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                {% if goal.completed %}Done{% else %}Active{% endif %}
+              </span>
+            </div>
+            <div class="text-xs text-gray-500 mb-2">Target: {{ goal.target_date|date:"M j, Y" }}</div>
+            {% if goal.completion %}
+            <div class="flex items-center">
+              <div class="flex-1 bg-gray-200 rounded-full h-1.5 mr-2">
+                <div class="bg-accent-600 h-1.5 rounded-full" style="width: {{ goal.completion }}%"></div>
+              </div>
+              <span class="text-xs text-gray-500">{{ goal.completion|floatformat:0 }}%</span>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Upcoming Meetings -->
+      {% if upcoming_meetings %}
+      <div class="clean-card rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-calendar mr-2 text-accent-600"></i>Upcoming Meetings
+          </h3>
+          <a href="{% url 'intervention:meeting-list' %}?student={{ student.pk }}" 
+             class="text-accent-600 hover:text-accent-700 text-sm">
+            View All
+          </a>
+        </div>
+        
+        <div class="space-y-3">
+          {% for meeting in upcoming_meetings %}
+          <div class="clean-card rounded-lg p-3 hover:border-accent-300">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-medium text-gray-900 text-sm">{{ meeting.scheduled_time|date:"M j, g:i A" }}</h4>
+                <p class="text-xs text-gray-500">{{ meeting.agenda|truncatechars:50 }}</p>
+                <p class="text-xs text-gray-400 mt-1">with {{ meeting.teacher.user_profile.user.get_full_name }}</p>
+              </div>
+              <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                Scheduled
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Parents/Guardians -->
+      {% if student.parents.exists %}
+      <div class="clean-card rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-users mr-2 text-accent-600"></i>Parents/Guardians
+        </h3>
+        
+        <div class="space-y-3">
+          {% for parent in student.parents.all %}
+          <div class="clean-card rounded-lg p-3 hover:border-accent-300">
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center text-white font-bold mr-3">
+                {{ parent.user_profile.user.first_name.0 }}{{ parent.user_profile.user.last_name.0 }}
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-900 text-sm">{{ parent.user_profile.user.get_full_name }}</h4>
+                <p class="text-xs text-gray-500">{{ parent.user_profile.user.email }}</p>
+                {% if parent.occupation %}
+                <p class="text-xs text-gray-400">{{ parent.occupation }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+/* Progress bar animation */
+.progress-bar {
+  animation: fillProgress 1s ease-out forwards;
+}
+
+@keyframes fillProgress {
+  from { width: 0%; }
+}
+
+/* Status badge animations */
+.status-badge {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Table row hover */
+tbody tr:hover {
+  background-color: rgba(241, 245, 249, 0.5);
+}
+
+/* Custom scrollbar for tables */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.5);
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+/* Card entrance animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideInUp 0.4s ease-out;
+}
+
+/* Interactive elements */
+.interactive-hover:hover {
+  transform: translateX(4px);
+  transition: transform 0.2s ease;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add entrance animations to cards
+    const cards = document.querySelectorAll('.clean-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-slide-in');
+    });
+    
+    // Progress bar animations
+    const progressBars = document.querySelectorAll('[style*="width:"]');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease-out';
+            bar.style.width = width;
+        }, 500);
+    });
+    
+    // Interactive hover effects for links
+    const interactiveLinks = document.querySelectorAll('a[href*="detail"], a[href*="view"]');
+    interactiveLinks.forEach(link => {
+        link.classList.add('interactive-hover');
+    });
+    
+    // Auto-update relative times
+    function updateRelativeTimes() {
+        const timeElements = document.querySelectorAll('[data-time]');
+        timeElements.forEach(element => {
+            const timestamp = new Date(element.dataset.time);
+            const now = new Date();
+            const diff = now - timestamp;
+            
+            if (diff < 60000) { // Less than 1 minute
+                element.textContent = 'Just now';
+            } else if (diff < 3600000) { // Less than 1 hour
+                element.textContent = `${Math.floor(diff / 60000)}m ago`;
+            } else if (diff < 86400000) { // Less than 1 day
+                element.textContent = `${Math.floor(diff / 3600000)}h ago`;
+            } else {
+                element.textContent = `${Math.floor(diff / 86400000)}d ago`;
+            }
+        });
+    }
+    
+    // Update times every minute
+    setInterval(updateRelativeTimes, 60000);
+    updateRelativeTimes();
+});
+</script>
+{% endblock %}

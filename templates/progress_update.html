@@ -1,0 +1,447 @@
+<!-- progress_update.html -->
+{% extends 'base.html' %}
+
+{% block title %}Add Progress Update - PDIE System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header -->
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'intervention-list' %}">Interventions</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'intervention-detail' form.instance.intervention.pk %}">{{ form.instance.intervention.title|truncatechars:20 }}</a></li>
+                    <li class="breadcrumb-item active">Progress Update</li>
+                </ol>
+            </nav>
+            <h1>
+                <i class="fas fa-chart-line me-2"></i>Add Progress Update
+            </h1>
+            <p class="text-muted">
+                Record progress for: <strong>{{ form.instance.intervention.title }}</strong>
+            </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clipboard-check me-2"></i>Progress Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Date -->
+                    <div class="mb-3">
+                        <label for="{{ form.date.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>Date *
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.date.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Improvement Score -->
+                    <div class="mb-3">
+                        <label for="{{ form.improvement_score.id_for_label }}" class="form-label">
+                            <i class="fas fa-star me-1"></i>Improvement Score *
+                        </label>
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                {{ form.improvement_score }}
+                                {% if form.improvement_score.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.improvement_score.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <div class="score-indicator">
+                                    <div class="progress">
+                                        <div class="progress-bar" id="scoreBar" style="width: 50%">5/10</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="text-muted">1 (Needs Work)</small>
+                                        <small class="text-muted">10 (Excellent)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-text">
+                            Rate the student's improvement on a scale of 1-10, where 1 indicates significant challenges and 10 indicates excellent progress.
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Progress Notes *
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.notes.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Provide detailed observations about the student's progress, challenges, and achievements.
+                        </div>
+                    </div>
+
+                    <!-- Evidence File -->
+                    <div class="mb-4">
+                        <label for="{{ form.evidence.id_for_label }}" class="form-label">
+                            <i class="fas fa-paperclip me-1"></i>Supporting Evidence
+                        </label>
+                        {{ form.evidence }}
+                        {% if form.evidence.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.evidence.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Optional. Upload work samples, photos, or other evidence that supports this progress update.
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'intervention-detail' form.instance.intervention.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Progress Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Guidelines Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Progress Recording Guidelines
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-eye text-primary me-2"></i>Observable Behaviors</h6>
+                        <p class="small text-muted">Focus on specific, observable behaviors and measurable outcomes.</p>
+                        
+                        <h6><i class="fas fa-chart-bar text-success me-2"></i>Data-Driven</h6>
+                        <p class="small text-muted">Include quantitative data when possible (scores, frequencies, durations).</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-balance-scale text-info me-2"></i>Objective Assessment</h6>
+                        <p class="small text-muted">Remain objective and avoid subjective interpretations.</p>
+                        
+                        <h6><i class="fas fa-arrow-trend-up text-warning me-2"></i>Growth Focused</h6>
+                        <p class="small text-muted">Note both progress and areas for continued improvement.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Bootstrap classes to form fields
+    const formControls = document.querySelectorAll('input, select, textarea');
+    formControls.forEach(function(control) {
+        if (control.type !== 'checkbox' && control.type !== 'radio') {
+            control.classList.add('form-control');
+        }
+    });
+
+    // Handle score indicator
+    const scoreInput = document.querySelector('#id_improvement_score');
+    const scoreBar = document.getElementById('scoreBar');
+
+    function updateScoreIndicator() {
+        const value = parseInt(scoreInput.value) || 5;
+        const percentage = (value / 10) * 100;
+        scoreBar.style.width = percentage + '%';
+        scoreBar.textContent = value + '/10';
+        
+        // Change color based on score
+        scoreBar.className = 'progress-bar';
+        if (value <= 3) {
+            scoreBar.classList.add('bg-danger');
+        } else if (value <= 6) {
+            scoreBar.classList.add('bg-warning');
+        } else {
+            scoreBar.classList.add('bg-success');
+        }
+    }
+
+    scoreInput.addEventListener('input', updateScoreIndicator);
+    updateScoreIndicator(); // Initial update
+
+    // Auto-resize textarea
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        textarea.style.minHeight = '150px';
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+
+    // File input styling
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.classList.add('form-control');
+    }
+});
+</script>
+{% endblock %}
+
+<!-- progress_history.html -->
+{% extends 'base.html' %}
+
+{% block title %}Progress History - {{ intervention.title }} - PDIE System{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'intervention-list' %}">Interventions</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'intervention-detail' intervention.pk %}">{{ intervention.title|truncatechars:20 }}</a></li>
+            <li class="breadcrumb-item active">Progress History</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>
+                <i class="fas fa-history me-2"></i>Progress History
+            </h1>
+            <p class="text-muted">{{ intervention.title }} - {{ intervention.student }}</p>
+        </div>
+        {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+            <a href="{% url 'progress-update' intervention.pk %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Add Progress Update
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-clipboard-list fa-2x mb-3"></i>
+                <h3>{{ page_obj.paginator.count }}</h3>
+                <p class="mb-0">Total Updates</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-2x mb-3"></i>
+                <h3>{{ object_list|first.improvement_score|default:"N/A" }}</h3>
+                <p class="mb-0">Latest Score</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-trophy fa-2x mb-3"></i>
+                <h3>
+                    {% if object_list %}
+                        {{ object_list|first.improvement_score|add:"-"|add:object_list|last.improvement_score|default:"0" }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </h3>
+                <p class="mb-0">Improvement</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar fa-2x mb-3"></i>
+                <h3>{{ object_list|first.date|timesince|default:"N/A" }}</h3>
+                <p class="mb-0">Last Update</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Updates -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>Progress Updates
+        </h5>
+    </div>
+    <div class="card-body">
+        {% for update in object_list %}
+            <div class="progress-update-item border-bottom py-4">
+                <div class="row align-items-start">
+                    <div class="col-md-2 text-center">
+                        <div class="score-badge mb-2">
+                            <div class="circular-progress">
+                                <div class="circle">
+                                    <div class="number">{{ update.improvement_score }}</div>
+                                    <div class="label">/ 10</div>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ update.date|date:"M j, Y" }}</small>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="mb-2">
+                            <strong>Progress Notes:</strong>
+                        </div>
+                        <p class="mb-2">{{ update.notes|linebreaks }}</p>
+                        {% if update.evidence %}
+                            <div class="mb-2">
+                                <a href="{{ update.evidence.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-paperclip me-1"></i>View Evidence
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <small class="text-muted">
+                            <i class="fas fa-user me-1"></i>{{ update.recorded_by }}<br>
+                            <i class="fas fa-clock me-1"></i>{{ update.date|timesince }} ago
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Progress Updates</h4>
+                <p class="text-muted">No progress updates have been recorded for this intervention yet.</p>
+                {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+                    <a href="{% url 'progress-update' intervention.pk %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add First Update
+                    </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="Progress updates pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.circular-progress {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+
+.circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(#667eea calc(var(--score) * 36deg), #e9ecef 0deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.circle::before {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+}
+
+.number, .label {
+    position: relative;
+    z-index: 1;
+    color: #333;
+    font-weight: bold;
+}
+
+.number {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.label {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.progress-update-item:last-child {
+    border-bottom: none !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set CSS custom properties for progress circles
+    const circles = document.querySelectorAll('.circle');
+    circles.forEach(function(circle) {
+        const scoreElement = circle.querySelector('.number');
+        const score = parseInt(scoreElement.textContent);
+        circle.style.setProperty('--score', score);
+    });
+});
+</script>
+{% endblock %}

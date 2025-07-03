@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Request to Link a Child - PDIE System{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto py-10">
+    <div class="clean-card p-8 rounded-xl shadow mb-10">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-full bg-accent-100 flex items-center justify-center mr-4">
+                <i class="fas fa-link text-2xl text-accent-600"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-primary-700">Request to Link a Child</h1>
+                <p class="text-gray-500 text-sm mt-1">Search for your child and submit a request to link them to your account. An administrator will review your request.</p>
+            </div>
+        </div>
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="px-4 py-2 rounded text-white mb-2 {% if message.tags == 'success' %}bg-green-500{% elif message.tags == 'error' or message.tags == 'danger' %}bg-red-500{% else %}bg-accent-600{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label for="id_student_query" class="block text-sm font-medium text-gray-700 mb-2">Search for Student <span class="text-red-500">*</span></label>
+                {{ form.student_query }}
+                {% if form.student_query.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.student_query.errors.0 }}</p>
+                {% endif %}
+                <div id="student-search-results" class="mt-2 mb-2 bg-gray-50 border border-accent-200 rounded"></div>
+                <input type="hidden" name="student" id="id_student">
+            </div>
+            <div>
+                <label for="id_message" class="block text-sm font-medium text-gray-700 mb-2">Message <span class="text-gray-400">(optional)</span></label>
+                {{ form.message }}
+                <p class="text-xs text-gray-400 mt-1">Add a message for the admin (optional)</p>
+            </div>
+            <button type="submit" class="w-full px-6 py-3 bg-accent-600 hover:bg-accent-700 rounded-lg text-white font-semibold text-lg transition-colors clean-button flex items-center justify-center">
+                <i class="fas fa-paper-plane mr-2"></i>Submit Request
+            </button>
+        </form>
+    </div>
+    <div class="clean-card p-8 rounded-xl">
+        <h2 class="text-xl font-bold text-primary-700 mb-6 flex items-center"><i class="fas fa-history mr-3 text-accent-600"></i>Your Link Requests</h2>
+        <div class="space-y-4">
+            {% for req in requests %}
+                <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 bg-gray-50 hover:border-accent-400 transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-accent-200 flex items-center justify-center text-accent-700 font-bold text-lg">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">{{ req.student.user_profile.user.get_full_name }}</div>
+                            <div class="text-xs text-gray-500">Requested: {{ req.created_at|date:"M d, Y H:i" }}</div>
+                            <div class="text-xs mt-1">
+                                <span class="font-semibold {% if req.status == 'APPROVED' %}text-green-600{% elif req.status == 'DENIED' %}text-red-600{% else %}text-yellow-600{% endif %}">
+                                    <i class="fas {% if req.status == 'APPROVED' %}fa-check-circle{% elif req.status == 'DENIED' %}fa-times-circle{% else %}fa-hourglass-half{% endif %} mr-1"></i>{{ req.get_status_display }}
+                                </span>
+                                {% if req.status == 'DENIED' and req.admin_note %}
+                                    <span class="ml-2 text-xs text-red-500">Reason: {{ req.admin_note }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-gray-500 text-center py-8">
+                    <i class="fas fa-info-circle text-2xl mb-2"></i><br>No requests submitted yet.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script>
+// Simple AJAX search for students
+const studentQuery = document.getElementById('id_student_query');
+const resultsDiv = document.getElementById('student-search-results');
+const studentInput = document.getElementById('id_student');
+if (studentQuery) {
+    studentQuery.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length < 2) {
+            resultsDiv.innerHTML = '';
+            studentInput.value = '';
+            return;
+        }
+        fetch(`/api/student-search/?search=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data.results) && data.results.length > 0) {
+                    resultsDiv.innerHTML = data.results.map(s => `<div class='p-2 hover:bg-accent-100 cursor-pointer rounded' data-id='${s.id}'><i class='fas fa-user-graduate mr-2 text-accent-600'></i>${s.name} <span class='text-xs text-gray-400'>(${s.grade})</span></div>`).join('');
+                    Array.from(resultsDiv.children).forEach(child => {
+                        child.onclick = function() {
+                            studentInput.value = this.getAttribute('data-id');
+                            studentQuery.value = this.textContent;
+                            resultsDiv.innerHTML = '';
+                        };
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<div class="text-gray-400 p-2">No students found.</div>';
+                    studentInput.value = '';
+                }
+            });
+    });
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - SIS{% endblock %}
+
+{% block content %}
+<div class="space-y-8 bg-gradient-to-br from-white via-blue-100 to-blue-200 min-h-screen py-10 px-2 md:px-8">
+  <!-- Page Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-blue-600 mb-2">Reports</h1>
+      <p class="text-blue-500">View and export key statistics and analytics for your school</p>
+    </div>
+    <div class="flex space-x-2 mt-4 md:mt-0">
+      <a href="{% url 'intervention:reports_pdf' %}" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow transition flex items-center">
+        <i class="fas fa-file-export mr-2"></i> Export PDF
+      </a>
+      <a href="#" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold shadow transition flex items-center">
+        <i class="fas fa-file-excel mr-2"></i> Export Excel
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-white border border-blue-100 rounded-2xl p-6 flex items-center shadow-lg">
+      <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+        <i class="fas fa-users text-2xl"></i>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-blue-600">Total Students</p>
+        <p class="text-2xl font-bold text-blue-700">{{ total_students|default:0 }}</p>
+      </div>
+    </div>
+    <div class="bg-white border border-blue-100 rounded-2xl p-6 flex items-center shadow-lg">
+      <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+        <i class="fas fa-chalkboard-teacher text-2xl"></i>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-blue-600">Total Teachers</p>
+        <p class="text-2xl font-bold text-blue-700">{{ total_teachers|default:0 }}</p>
+      </div>
+    </div>
+    <div class="bg-white border border-blue-100 rounded-2xl p-6 flex items-center shadow-lg">
+      <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+        <i class="fas fa-flag text-2xl"></i>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-blue-600">Active Interventions</p>
+        <p class="text-2xl font-bold text-blue-700">{{ active_interventions|default:0 }}</p>
+      </div>
+    </div>
+    <div class="bg-white border border-blue-100 rounded-2xl p-6 flex items-center shadow-lg">
+      <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+        <i class="fas fa-chart-line text-2xl"></i>
+      </div>
+      <div class="ml-4">
+        <p class="text-sm font-medium text-blue-600">Avg Attendance</p>
+        <p class="text-2xl font-bold text-blue-700">{{ avg_attendance|default:"-" }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section (placeholder) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+    <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg">
+      <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
+        <i class="fas fa-chart-pie mr-2 text-blue-500"></i>Intervention Status Breakdown
+      </h2>
+      <canvas id="interventionStatusChart" height="200"></canvas>
+    </div>
+    <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg">
+      <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
+        <i class="fas fa-chart-bar mr-2 text-blue-500"></i>Monthly Attendance Trend
+      </h2>
+      <canvas id="attendanceTrendChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent Activity Table (placeholder) -->
+  <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg mt-8">
+    <h2 class="text-xl font-bold text-blue-700 flex items-center mb-4">
+      <i class="fas fa-history mr-2"></i> Recent Activity
+    </h2>
+    <div class="overflow-x-auto rounded-lg shadow">
+      <table class="min-w-full bg-white border border-blue-100">
+        <thead>
+          <tr>
+            <th class="px-4 py-2 border-b text-left text-xs font-semibold text-blue-600 uppercase">Date</th>
+            <th class="px-4 py-2 border-b text-left text-xs font-semibold text-blue-600 uppercase">User</th>
+            <th class="px-4 py-2 border-b text-left text-xs font-semibold text-blue-600 uppercase">Action</th>
+            <th class="px-4 py-2 border-b text-left text-xs font-semibold text-blue-600 uppercase">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_activity %}
+          <tr class="hover:bg-blue-50">
+            <td class="px-4 py-2 border-b">{{ log.timestamp|date:"M d, Y H:i" }}</td>
+            <td class="px-4 py-2 border-b">
+              {% if log.user %}
+                {{ log.user.get_full_name|default:log.user.username }}
+              {% else %}
+                <span class="text-gray-400">System</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 border-b">{{ log.action }}</td>
+            <td class="px-4 py-2 border-b">{{ log.details }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-4 py-2 text-center text-gray-400">No recent activity found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Intervention Status Pie Chart
+    var ctx1 = document.getElementById('interventionStatusChart').getContext('2d');
+    var statusData = {{ status_counts|safe }};
+    new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: statusData.map(x => x.status),
+            datasets: [{
+                data: statusData.map(x => x.count),
+                backgroundColor: ['#3b82f6', '#6366f1', '#f59e42', '#f87171']
+            }]
+        }
+    });
+
+    // Attendance Trend Bar Chart
+    var ctx2 = document.getElementById('attendanceTrendChart').getContext('2d');
+    var trendData = {{ attendance_trend|safe }};
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: trendData.map(x => x.month),
+            datasets: [{
+                label: 'Attendance Rate (%)',
+                data: trendData.map(x => x.rate),
+                backgroundColor: '#3b82f6'
+            }]
+        }
+    });
+});
+</script>
+{% endblock %}

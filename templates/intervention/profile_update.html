@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Update Profile | PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="clean-card rounded-lg p-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Update Profile</h1>
+            <p class="text-gray-600">Edit your personal information and preferences</p>
+        </div>
+
+        <!-- Profile Form -->
+        <form method="post" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Basic Information Section -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center border-b border-gray-200 pb-2">
+                    <i class="fas fa-user-circle mr-2 text-accent-600"></i>
+                    Basic Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- First Name -->
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <input type="text" name="first_name" id="first_name" 
+                               value="{{ user.first_name }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                    
+                    <!-- Last Name -->
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" 
+                               value="{{ user.last_name }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                </div>
+                
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" name="email" id="email" 
+                           value="{{ user.email }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                </div>
+            </div>
+            
+            <!-- Profile Details Section -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center border-b border-gray-200 pb-2">
+                    <i class="fas fa-id-card mr-2 text-accent-600"></i>
+                    Profile Details
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Phone -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input type="text" name="phone" id="phone" 
+                               value="{{ user.userprofile.phone|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                    
+                    <!-- Address -->
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <input type="text" name="address" id="address" 
+                               value="{{ user.userprofile.address|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                </div>
+                
+                <!-- Profile Picture -->
+                <div>
+                    <label for="profile_picture" class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
+                    <div class="flex items-center space-x-4">
+                        {% if user.userprofile.profile_picture %}
+                        <img src="{{ user.userprofile.profile_picture.url }}" alt="Current Profile Picture" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                        {% else %}
+                        <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="profile_picture" id="profile_picture" 
+                               class="block w-full text-sm text-gray-600
+                                      file:mr-4 file:py-2 file:px-4 file:rounded-lg
+                                      file:border-0 file:text-sm file:font-medium
+                                      file:bg-accent-600 file:text-white
+                                      hover:file:bg-accent-700 file:transition-colors">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Role-Specific Fields -->
+            {% if user.userprofile.user_type == 'TEACHER' %}
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center border-b border-gray-200 pb-2">
+                    <i class="fas fa-chalkboard-teacher mr-2 text-blue-600"></i>
+                    Teacher Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Qualification -->
+                    <div>
+                        <label for="qualification" class="block text-sm font-medium text-gray-700 mb-2">Qualification</label>
+                        <input type="text" name="qualification" id="qualification" 
+                               value="{{ user.userprofile.teacher.qualification|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                    
+                    <!-- Subjects -->
+                    <div>
+                        <label for="subjects" class="block text-sm font-medium text-gray-700 mb-2">Subjects</label>
+                        <input type="text" name="subjects" id="subjects" 
+                               value="{{ user.userprofile.teacher.subjects|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                </div>
+            </div>
+            {% elif user.userprofile.user_type == 'STUDENT' %}
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center border-b border-gray-200 pb-2">
+                    <i class="fas fa-user-graduate mr-2 text-green-600"></i>
+                    Student Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Grade Level -->
+                    <div>
+                        <label for="grade_level" class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                        <select name="grade_level" id="grade_level" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                            {% for value, display in user.userprofile.student.GRADE_LEVELS %}
+                            <option value="{{ value }}" {% if user.userprofile.student.grade_level == value %}selected{% endif %}>
+                                {{ display }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Special Programs -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-700">Special Programs</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="iep" id="iep" 
+                                       {% if user.userprofile.student.iep %}checked{% endif %}
+                                       class="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500">
+                                <span class="text-sm text-gray-700">IEP Program</span>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="ell" id="ell" 
+                                       {% if user.userprofile.student.ell %}checked{% endif %}
+                                       class="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500">
+                                <span class="text-sm text-gray-700">ELL Program</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% elif user.userprofile.user_type == 'PARENT' %}
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center border-b border-gray-200 pb-2">
+                    <i class="fas fa-user-friends mr-2 text-purple-600"></i>
+                    Parent Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Occupation -->
+                    <div>
+                        <label for="occupation" class="block text-sm font-medium text-gray-700 mb-2">Occupation</label>
+                        <input type="text" name="occupation" id="occupation" 
+                               value="{{ user.userprofile.parent.occupation|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                    
+                    <!-- Employer -->
+                    <div>
+                        <label for="employer" class="block text-sm font-medium text-gray-700 mb-2">Employer</label>
+                        <input type="text" name="employer" id="employer" 
+                               value="{{ user.userprofile.parent.employer|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="emergency_contact" class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+                    <input type="text" name="emergency_contact" id="emergency_contact" 
+                           value="{{ user.userprofile.parent.emergency_contact|default:'' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Form Actions -->
+            <div class="pt-6 border-t border-gray-200 flex justify-end space-x-3">
+                <a href="{% url 'intervention:profile' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 bg-accent-600 hover:bg-accent-700 rounded-lg text-white font-medium transition-colors clean-button">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

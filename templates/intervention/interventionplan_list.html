@@ -1,0 +1,26 @@
+{% extends "intervention_list.html" %}
+
+{% block title %}Intervention Plans | PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-8xl mx-auto">
+    <div class="flex flex-col space-y-6">
+        <!-- Custom header for plans -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">My Intervention Plans</h1>
+                <p class="text-gray-400">Your active and completed intervention plans</p>
+            </div>
+            {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+            <a href="{% url 'intervention:intervention-create' %}" class="mt-4 md:mt-0 px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 rounded-md text-sm font-medium hover:from-primary-500 hover:to-primary-600 transition-all shadow-lg cyber-button flex items-center space-x-2">
+                <i class="fas fa-plus"></i>
+                <span>New Plan</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Rest of the content is inherited from intervention_list.html -->
+        {{ block.super }}
+    </div>
+</div>
+{% endblock %}

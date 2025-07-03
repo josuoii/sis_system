@@ -1,0 +1,325 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PDIE System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        accent: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.1s ease-out',
+                        'slide-down': 'slideDown 0.1s ease-out',
+                        'slide-right': 'slideRight 0.1s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(-4px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideDown: {
+                            '0%': { opacity: '0', transform: 'translateY(-8px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideRight: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .clean-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.1s ease;
+        }
+        
+        .clean-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .clean-button {
+            transition: all 0.1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .clean-button:hover {
+            transform: translateY(-1px);
+        }
+        
+        .sidebar-link {
+            position: relative;
+            color: #64748b;
+            transition: all 0.1s ease;
+            border-radius: 8px;
+        }
+        
+        .sidebar-link:hover {
+            color: #1d4ed8;
+            background-color: #eff6ff;
+        }
+        
+        .sidebar-link.active {
+            color: #1d4ed8;
+            background-color: #dbeafe;
+            font-weight: 500;
+        }
+        
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #2563eb;
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .minimal-shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-backdrop {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .sidebar-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed z-30 inset-y-0 left-0 w-64 bg-gradient-to-b from-white via-blue-200 via-60% to-blue-400 flex flex-col py-8 px-2 transition-transform duration-200 lg:translate-x-0 lg:static lg:w-64 shadow-xl border-r border-blue-100 overflow-y-auto">
+            <!-- Logo -->
+            <div class="flex items-center px-4 mb-12 mt-2">
+                <div class="w-14 h-14 rounded-full bg-white/60 backdrop-blur shadow-lg flex items-center justify-center mr-3 ring-2 ring-blue-200">
+                    <img src="{% static 'images/Logo3.png' %}" alt="System Logo" class="w-12 h-12 object-cover rounded-full">
+                </div>
+                <span class="text-3xl font-extrabold tracking-tight text-blue-700 drop-shadow">SIS</span>
+            </div>
+            <!-- Navigation -->
+            <nav class="flex-1 space-y-2">
+                <a href="{% url 'intervention:dashboard' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </a>
+                {% if user.userprofile.user_type == 'ADMIN' or user.userprofile.user_type == 'TEACHER' %}
+                <div x-data="{ open: false }">
+                  <a href="#" @click.prevent="open = !open" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                      <i class="fas fa-users"></i><span>Students</span>
+                      <i :class="open ? 'fa-chevron-up' : 'fa-chevron-down'" class="fas ml-auto"></i>
+                  </a>
+                  <div x-show="open" class="ml-8 space-y-1" x-cloak>
+                    <a href="{% url 'intervention:goal-list' %}" class="flex items-center px-4 py-2 rounded-lg text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                      <i class="fas fa-bullseye mr-2"></i>Set Goal
+                    </a>
+                    <a href="{% url 'intervention:meeting-list' %}" class="flex items-center px-4 py-2 rounded-lg text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                      <i class="fas fa-calendar-plus mr-2"></i>Schedule Meeting
+                    </a>
+                  </div>
+                </div>
+                {% endif %}
+                <a href="{% url 'intervention:intervention-list' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-flag"></i><span>Interventions</span>
+                </a>
+                <a href="{% url 'intervention:class-list' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-chalkboard"></i><span>Classes</span>
+                </a>
+                <a href="{% url 'intervention:attendance-list' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-calendar-check"></i><span>Attendance</span>
+                </a>
+                {% if user.userprofile.user_type == 'ADMIN' or user.userprofile.user_type == 'TEACHER' %}
+                <a href="{% url 'intervention:reports' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-chart-bar"></i><span>Reports</span>
+                </a>
+                {% endif %}
+                {% if user.userprofile.user_type == 'STUDENT' or user.userprofile.user_type == 'PARENT' %}
+                <a href="{% url 'intervention:academic-record-list' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-file-alt"></i><span>Academic Records</span>
+                </a>
+                <a href="{% url 'intervention:meeting-list' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-calendar-alt"></i><span>Meetings</span>
+                </a>
+                {% endif %}
+                {% if user.userprofile.user_type == 'TEACHER' %}
+                <a href="{% url 'intervention:academic-record-create' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-file-medical"></i><span>Add Academic Record</span>
+                </a>
+                {% endif %}
+                {% if user.userprofile.user_type == 'ADMIN' %}
+                <a href="{% url 'intervention:academic-record-create' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-file-medical"></i><span>Add Academic Record</span>
+                </a>
+                {% endif %}
+                {% if user.userprofile.user_type == 'ADMIN' or user.userprofile.user_type == 'TEACHER' %}
+                <a href="{% url 'intervention:admin-link-request-list' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-link"></i><span>Review Parent-Child Link Requests</span>
+                </a>
+                {% endif %}
+                {% if user.userprofile.user_type == 'STUDENT' %}
+                    <a href="{% url 'intervention:learning-style' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                        <i class="fas fa-brain"></i><span>Learning Style</span>
+                    </a>
+                {% endif %}
+                <a href="{% url 'intervention:chat-thread-list' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-comments"></i><span>Message</span>
+                </a>
+                {% if user.userprofile.user_type == 'PARENT' %}
+                <a href="{% url 'intervention:parent-link-request' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition duration-200">
+                    <i class="fas fa-link"></i><span>Request to Link a Child</span>
+                </a>
+                {% endif %}
+                {% if user.userprofile.user_type == 'ADMIN' %}
+                <a href="{% url 'intervention:user-management' %}" class="flex items-center px-4 py-3 space-x-2 rounded-xl text-blue-900 font-medium hover:bg-white/30 hover:text-blue-800 transition duration-200">
+                    <i class="fas fa-users-cog"></i><span>Manage Users</span>
+                </a>
+                {% endif %}
+            </nav>
+            <!-- Sidebar Footer -->
+            <div class="mt-auto px-4 pt-8 text-xs text-blue-700 font-semibold">
+                &copy; {% now "Y" %} SIS. All Rights Reserved.
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col">
+            <!-- Top Header -->
+            <header class="flex items-center justify-between h-20 px-8 bg-white border-b">
+                <!-- Mobile Menu Button -->
+                <button class="lg:hidden" @click="sidebarOpen = true">
+                    <i class="fas fa-bars text-xl text-gray-600"></i>
+                </button>
+                
+                <!-- Breadcrumbs -->
+                <nav class="hidden lg:flex items-center text-sm font-medium">
+                    {% block breadcrumb %}{% endblock %}
+                </nav>
+
+                <!-- Profile Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-accent-100 text-accent-600 flex items-center justify-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="hidden md:block text-left">
+                            <p class="font-semibold text-gray-800">{{ user.get_full_name|default:user.username }}</p>
+                            <p class="text-xs text-gray-500">{{ user.userprofile.get_user_type_display }}</p>
+                        </div>
+                    </button>
+                    <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20" x-cloak>
+                        <a href="{% url 'intervention:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="{% url 'intervention:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="flex-1 p-8 overflow-y-auto">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Sidebar -->
+    <div x-show="sidebarOpen" class="fixed inset-0 z-40 lg:hidden" x-cloak>
+        <div @click="sidebarOpen = false" class="absolute inset-0 bg-black opacity-50"></div>
+        <div class="relative w-64 h-full bg-white shadow-xl flex flex-col">
+            <!-- Sidebar content here, same as desktop but for mobile -->
+        </div>
+    </div>
+    
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    {% if messages %}
+<script>
+{% for message in messages %}
+toastr.options = {
+    "closeButton": true,
+    "progressBar": true,
+    "positionClass": "toast-top-right",
+    "timeOut": "5000"
+};
+toastr["{{ message.tags|default:'info' }}"]("{{ message|escapejs }}");
+{% endfor %}
+</script>
+    {% endif %}
+    {% if user.is_authenticated %}
+<script>
+const notificationSocket = new WebSocket(
+    (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/notifications/'
+);
+notificationSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "5000"
+    };
+    toastr[data.type || 'info'](data.message);
+};
+notificationSocket.onclose = function(e) {
+    console.error('Notification socket closed unexpectedly');
+};
+</script>
+    {% endif %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% block title %}Chat with {{ other_user.get_full_name|default:other_user.username }} | PDIE System{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto flex flex-col h-[90vh] py-4">
+  <!-- Header with back button and user info -->
+  <div class="flex items-center mb-4 px-4 py-3 bg-white rounded-lg shadow-sm">
+    <a href="{% url 'intervention:chat-thread-list' %}" class="text-blue-600 hover:text-blue-700 mr-3 p-1 rounded-full hover:bg-blue-50 transition-colors">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+    <div class="flex items-center">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-600 text-lg shadow-inner overflow-hidden">
+        {% if other_user.userprofile.profile_picture %}
+          <img src="{{ other_user.userprofile.profile_picture.url }}" class="w-full h-full object-cover" alt="">
+        {% else %}
+          <i class="fas fa-user"></i>
+        {% endif %}
+      </div>
+      <div class="ml-3">
+        <span class="font-semibold text-gray-900">{{ other_user.get_full_name|default:other_user.username }}</span>
+        <div class="text-xs text-gray-500 flex items-center">
+          <span class="w-2 h-2 rounded-full bg-green-400 mr-1"></span>
+          <span>Online</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat messages area with soft blue background -->
+  <div id="chat-messages" class="flex-1 overflow-y-auto bg-blue-50 rounded-xl p-4 space-y-4">
+    {% for msg in messages %}
+      <div class="flex flex-col {% if msg.sender.id == request.user.id %}items-end{% else %}items-start{% endif %}">
+        {% if msg.reply_to %}
+          <div class="text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 mb-1 max-w-xs truncate border-l-2 border-blue-400">
+            <span class="font-semibold">{{ msg.reply_to.sender.get_full_name|default:msg.reply_to.sender.username }}:</span>
+            {{ msg.reply_to.content|truncatechars:40 }}
+          </div>
+        {% endif %}
+        <div class="relative group max-w-xs lg:max-w-md">
+          <div class="px-4 py-2 rounded-2xl shadow-sm text-sm
+            {% if msg.sender.id == request.user.id %}
+              bg-blue-600 text-white rounded-br-none
+            {% else %}
+              bg-white text-gray-900 rounded-bl-none border border-blue-100
+            {% endif %}">
+            {{ msg.content }}
+          </div>
+          <div class="flex items-center justify-between mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span class="text-xs {% if msg.sender.id == request.user.id %}text-blue-100{% else %}text-blue-400{% endif %} chat-time" data-utc="{{ msg.timestamp|date:'c' }}"></span>
+            <div class="flex items-center space-x-2">
+                <button class="text-xs {% if msg.sender.id == request.user.id %}text-blue-200 hover:text-white{% else %}text-blue-400 hover:text-blue-600{% endif %} reply-btn transition-colors" 
+                        data-msg-id="{{ msg.id }}" 
+                        data-msg-content="{{ msg.content|escapejs }}" 
+                        data-msg-sender="{{ msg.sender.get_full_name|default:msg.sender.username }}"
+                        title="Reply">
+                    <i class="fas fa-reply"></i>
+                </button>
+                {% if msg.sender.id == request.user.id %}
+                <button class="text-xs {% if msg.sender.id == request.user.id %}text-blue-200 hover:text-white{% else %}text-blue-400 hover:text-blue-600{% endif %} delete-btn transition-colors" 
+                        data-msg-id="{{ msg.id }}"
+                        title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+                {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="flex flex-col items-center justify-center h-full text-blue-300">
+        <i class="fas fa-comments text-4xl mb-2"></i>
+        <p>Start your conversation with {{ other_user.get_full_name|default:other_user.username }}</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Reply preview -->
+  <div id="reply-preview" class="hidden bg-blue-100 border-l-4 border-blue-400 px-4 py-2 mb-2 rounded-lg flex items-center justify-between shadow-sm">
+    <div class="truncate">
+      <span class="font-semibold text-blue-700 text-sm" id="reply-sender"></span>
+      <span class="text-blue-800 text-sm truncate" id="reply-content"></span>
+    </div>
+    <button id="cancel-reply" class="ml-4 text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-200 transition-colors">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <!-- Message input form -->
+  <form id="chat-form" class="flex items-end space-x-2 mt-4 px-2">
+    <div class="flex-1 relative">
+      <input type="text" id="chat-input" 
+             class="w-full px-4 py-3 rounded-full border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-sm bg-white" 
+             placeholder="Type a message..." 
+             autocomplete="off">
+      <button type="button" class="absolute right-3 top-3 text-blue-300 hover:text-blue-500">
+        <i class="far fa-smile"></i>
+      </button>
+    </div>
+    <input type="hidden" id="reply-to-id">
+    <button type="submit" 
+            class="p-3 bg-blue-600 hover:bg-blue-700 rounded-full text-white font-semibold transition-colors shadow-md">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </form>
+</div>
+
+<script>
+const userId = {{ request.user.id }};
+const threadId = {{ thread.id }};
+const otherUserId = {{ other_user.id }};
+const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+const chatSocket = new WebSocket(
+  wsScheme + '://' + window.location.host + '/ws/chat/' + threadId + '/'
+);
+
+// DOM elements
+const chatMessages = document.getElementById('chat-messages');
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+const replyPreview = document.getElementById('reply-preview');
+const replyToIdInput = document.getElementById('reply-to-id');
+const replySender = document.getElementById('reply-sender');
+const replyContent = document.getElementById('reply-content');
+const cancelReply = document.getElementById('cancel-reply');
+
+// Scroll to bottom on load and when new message arrives
+function scrollToBottom() {
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Initial scroll
+setTimeout(scrollToBottom, 100);
+
+// Handle reply button
+chatMessages.addEventListener('click', function(e) {
+  if (e.target.closest('.reply-btn')) {
+    const btn = e.target.closest('.reply-btn');
+    replyToIdInput.value = btn.dataset.msgId;
+    replySender.textContent = btn.dataset.msgSender + ': ';
+    replyContent.textContent = btn.dataset.msgContent;
+    replyPreview.classList.remove('hidden');
+    chatInput.focus();
+    scrollToBottom();
+  }
+});
+
+if (cancelReply) {
+  cancelReply.onclick = function() {
+    replyToIdInput.value = '';
+    replyPreview.classList.add('hidden');
+  };
+}
+
+// Send message
+chatForm.onsubmit = function(e) {
+  e.preventDefault();
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  const tempId = `temp_${new Date().getTime()}`;
+  const isReplying = replyToIdInput.value !== '';
+
+  // Create optimistic message
+  let replyHtml = '';
+  if (isReplying) {
+    replyHtml = `
+    <div class="text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 mb-1 max-w-xs truncate border-l-2 border-blue-400">
+      <span class="font-semibold">${replySender.textContent}</span> ${replyContent.textContent.substring(0,40)}
+    </div>`;
+  }
+
+  const optimisticMsgHtml = `
+  <div class="flex flex-col items-end" id="${tempId}">
+    ${replyHtml}
+    <div class="relative group max-w-xs lg:max-w-md">
+      <div class="px-4 py-2 rounded-2xl shadow-sm text-sm bg-blue-600 text-white rounded-br-none">
+        ${message}
+      </div>
+      <div class="flex items-center justify-between mt-1 px-1">
+        <span class="text-xs text-blue-100">Sending...</span>
+      </div>
+    </div>
+  </div>`;
+  
+  chatMessages.insertAdjacentHTML('beforeend', optimisticMsgHtml);
+  scrollToBottom();
+
+  // Send to WebSocket
+  chatSocket.send(JSON.stringify({
+    'type': 'chat_message',
+    'message': message,
+    'sender_id': userId,
+    'reply_to_id': replyToIdInput.value || null,
+    'temp_id': tempId
+  }));
+
+  // Reset form
+  chatInput.value = '';
+  replyToIdInput.value = '';
+  replyPreview.classList.add('hidden');
+};
+
+// Receive message
+chatSocket.onmessage = function(e) {
+  const data = JSON.parse(e.data);
+
+  if (data.type === 'message_deleted') {
+    const msgDiv = document.querySelector(`[data-msg-id="${data.msg_id}"]`);
+    if (msgDiv) {
+      msgDiv.remove();
+    }
+    return;
+  }
+
+  const isMine = data.sender_id == userId;
+  let replyHtml = '';
+  if (data.reply_to) {
+    replyHtml = `<div class="text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 mb-1 max-w-xs truncate border-l-2 border-blue-400">
+      <span class="font-semibold">${data.reply_to.sender_name}:</span> ${data.reply_to.content.substring(0,40)}
+    </div>`;
+  }
+  
+  const msgHtml = `<div class="flex flex-col ${isMine ? 'items-end' : 'items-start'}" data-msg-id="${data.msg_id}">
+    ${replyHtml}
+    <div class="relative group max-w-xs lg:max-w-md">
+      <div class="px-4 py-2 rounded-2xl shadow-sm text-sm ${isMine ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-gray-900 rounded-bl-none border border-blue-100'}">
+        ${data.message}
+      </div>
+      <div class="flex items-center justify-between mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span class="text-xs ${isMine ? 'text-blue-100' : 'text-blue-400'} chat-time" data-utc="${data.timestamp}"></span>
+        <div class="flex items-center space-x-2">
+            <button class="text-xs ${isMine ? 'text-blue-200 hover:text-white' : 'text-blue-400 hover:text-blue-600'} reply-btn transition-colors" 
+                    data-msg-id="${data.msg_id}" 
+                    data-msg-content="${data.message.replace(/"/g, '&quot;')}" 
+                    data-msg-sender="${data.sender_name}"
+                    title="Reply">
+                <i class="fas fa-reply"></i>
+            </button>
+            ${isMine ? `<button class="text-xs ${isMine ? 'text-blue-200 hover:text-white' : 'text-blue-400 hover:text-blue-600'} delete-btn transition-colors" 
+                    data-msg-id="${data.msg_id}"
+                    title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>` : ''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // If this is my message and temp_id matches, replace the optimistic message
+  if (isMine && data.temp_id) {
+    const tempDiv = document.getElementById(data.temp_id);
+    if (tempDiv) {
+      tempDiv.outerHTML = msgHtml;
+      return;
+    }
+  }
+  
+  // Otherwise, just append
+  chatMessages.insertAdjacentHTML('beforeend', msgHtml);
+  scrollToBottom();
+};
+
+// WebSocket connection status
+chatSocket.onopen = function(e) {
+  console.log('WebSocket connection established');
+};
+
+chatSocket.onclose = function(e) {
+  console.log('WebSocket connection closed:', e);
+  // Show reconnection UI
+  const reconnectBanner = document.createElement('div');
+  reconnectBanner.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center';
+  reconnectBanner.innerHTML = `
+    <span class="mr-2">Connection lost. Attempting to reconnect...</span>
+    <div class="animate-spin">
+      <i class="fas fa-sync-alt"></i>
+    </div>
+  `;
+  document.body.appendChild(reconnectBanner);
+  
+  // Attempt to reconnect every 5 seconds
+  const reconnectInterval = setInterval(() => {
+    const newSocket = new WebSocket(chatSocket.url);
+    newSocket.onopen = function() {
+      clearInterval(reconnectInterval);
+      document.body.removeChild(reconnectBanner);
+      location.reload(); // Refresh to re-establish connection
+    };
+  }, 5000);
+};
+
+chatSocket.onerror = function(e) {
+  console.error('WebSocket error:', e);
+};
+
+// Delete message handler
+chatMessages.addEventListener('click', function(e) {
+  const deleteBtn = e.target.closest('.delete-btn');
+  if (deleteBtn) {
+    const msgId = deleteBtn.dataset.msgId;
+    if (confirm('Are you sure you want to delete this message?')) {
+      // Optimistically remove the message immediately
+      const msgDiv = deleteBtn.closest('[data-msg-id]');
+      if (msgDiv) {
+        msgDiv.style.opacity = '0';
+        setTimeout(() => msgDiv.remove(), 200);
+      }
+      // Send delete request to server
+      chatSocket.send(JSON.stringify({
+        'type': 'delete_message',
+        'msg_id': msgId
+      }));
+    }
+  }
+});
+
+// Typing indicator (would need server support)
+let typingTimeout;
+chatInput.addEventListener('input', function() {
+  // Send typing indicator to server
+  // Clear previous timeout
+  clearTimeout(typingTimeout);
+  
+  // Set new timeout
+  typingTimeout = setTimeout(() => {
+    // Send stopped typing
+  }, 1000);
+});
+
+// Focus input when clicking on messages
+chatMessages.addEventListener('click', function() {
+  chatInput.focus();
+});
+</script>
+<script>
+// Convert all .chat-time elements to local time
+function updateChatTimes() {
+  document.querySelectorAll('.chat-time').forEach(function(el) {
+    const utc = el.getAttribute('data-utc');
+    if (utc) {
+      const date = new Date(utc);
+      // Format as HH:mm (24-hour)
+      const hours = date.getHours().toString().padStart(2, '0');
+      const mins = date.getMinutes().toString().padStart(2, '0');
+      el.textContent = `${hours}:${mins}`;
+    }
+  });
+}
+updateChatTimes();
+// Optionally, update every minute in case of new messages
+setInterval(updateChatTimes, 60000);
+</script>
+
+<style>
+/* Custom scrollbar for chat messages */
+#chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+#chat-messages::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.05);
+  border-radius: 10px;
+}
+#chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 10px;
+}
+#chat-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,17 @@
+asgiref==3.8.1
+Django==4.2.11
+sqlparse==0.5.3
+typing_extensions==4.14.0
+tzdata==2025.2
+channels>=4.0.0
+daphne>=4.0.0
+Pillow>=9.0.0
+django-widget-tweaks>=1.4.12
+django-formtools>=2.4
+reportlab>=4.0.0
+pandas>=2.0.0
+lxml>=4.9.0
+fonttools>=4.0.0
+arabic-reshaper>=3.0.0
+python-bidi>=0.4.2
+channels-redis>=4.0.0

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Progress Update | PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in">
+    <div class="clean-card rounded-xl p-8 shadow mb-8 bg-white">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+                <i class="fas fa-chart-line mr-2 text-accent-600"></i>
+                {% if object %}Edit Progress Update{% else %}Add Progress Update{% endif %}
+            </h2>
+            <a href="{% url 'intervention:intervention-detail' intervention.pk %}" 
+               class="text-gray-400 hover:text-accent-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </a>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Intervention Info (readonly) -->
+                <div class="md:col-span-2 p-4 bg-accent-50 rounded-lg border border-accent-100 mb-2">
+                    <h4 class="text-lg font-semibold text-accent-800 mb-1">Intervention: {{ intervention.title }}</h4>
+                    <p class="text-sm text-accent-700">Student: {{ intervention.student }}</p>
+                </div>
+
+                <!-- Date Field -->
+                <div>
+                    <label for="{{ form.date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-calendar-day mr-2 text-accent-400"></i>Date
+                    </label>
+                    <input type="date" name="date" id="id_date" 
+                           value="{{ form.date.value|default:''|date:'Y-m-d' }}"
+                           class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-accent-400">
+                    {% if form.date.errors %}
+                    <p class="mt-1 text-sm text-red-500">{{ form.date.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Improvement Score -->
+                <div>
+                    <label for="{{ form.improvement_score.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-percentage mr-2 text-accent-400"></i>Improvement Score (1-10)
+                    </label>
+                    <input type="number" name="improvement_score" id="id_improvement_score" 
+                           min="1" max="10" 
+                           value="{{ form.improvement_score.value|default:'' }}"
+                           class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-accent-400">
+                    {% if form.improvement_score.errors %}
+                    <p class="mt-1 text-sm text-red-500">{{ form.improvement_score.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Notes Field -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-sticky-note mr-2 text-accent-400"></i>Notes
+                    </label>
+                    <textarea name="notes" id="id_notes" rows="4"
+                              class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-accent-400">{{ form.notes.value|default:'' }}</textarea>
+                    {% if form.notes.errors %}
+                    <p class="mt-1 text-sm text-red-500">{{ form.notes.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Evidence Upload -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.evidence.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-paperclip mr-2 text-accent-400"></i>Supporting Evidence (Optional)
+                    </label>
+                    <div class="flex items-center space-x-4">
+                        {% if form.instance.evidence %}
+                        <a href="{{ form.instance.evidence.url }}" target="_blank" class="text-accent-600 hover:text-accent-700">
+                            <i class="fas fa-file-download mr-1"></i> Current File
+                        </a>
+                        {% endif %}
+                        <input type="file" name="evidence" id="id_evidence" 
+                               class="block w-full text-sm text-gray-700
+                                      file:mr-4 file:py-2 file:px-4 file:rounded-md
+                                      file:border-0 file:text-sm file:font-medium
+                                      file:bg-accent-600 file:text-white
+                                      hover:file:bg-accent-700">
+                    </div>
+                    {% if form.evidence.errors %}
+                    <p class="mt-1 text-sm text-red-500">{{ form.evidence.errors.as_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'intervention:intervention-detail' intervention.pk %}" 
+                   class="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-accent-600 to-accent-700 rounded-md text-sm font-medium text-white hover:from-accent-500 hover:to-accent-600 transition-all shadow clean-button">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if object %}Update{% else %}Save{% endif %} Progress
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Academic Records - PDIE System
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+    <h2 class="text-2xl font-bold text-gray-900">
+      <i class="fas fa-book mr-2 text-accent-600"></i>Academic Records
+    </h2>
+    {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+    <a href="{% url 'intervention:academic-record-create' %}" class="px-4 py-2 bg-accent-600 hover:bg-accent-700 rounded-lg text-white text-sm font-medium transition-colors clean-button mt-4 md:mt-0">
+      <i class="fas fa-plus mr-2"></i>Add New Record
+    </a>
+    {% endif %}
+  </div>
+  <!-- Filters -->
+  <div class="clean-card rounded-lg p-6 mb-8">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label for="student" class="block text-sm font-medium text-gray-900 mb-1">Student</label>
+        <select name="student" id="student" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+          <option value="">All Students</option>
+          {% for student in students %}
+            <option value="{{ student.id }}" {% if request.GET.student == student.id|stringformat:"s" %}selected{% endif %}>{{ student.user_profile.user.get_full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="subject" class="block text-sm font-medium text-gray-900 mb-1">Subject</label>
+        <input type="text" name="subject" id="subject" value="{{ request.GET.subject }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+      </div>
+      <div>
+        <label for="term" class="block text-sm font-medium text-gray-900 mb-1">Term</label>
+        <select name="term" id="term" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500">
+          <option value="">All Terms</option>
+          {% for term in term_choices %}
+            <option value="{{ term.0 }}" {% if request.GET.term == term.0 %}selected{% endif %}>{{ term.1 }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button type="submit" class="px-4 py-2 bg-accent-600 hover:bg-accent-700 rounded-lg text-white text-sm font-medium transition-colors clean-button w-full">
+          <i class="fas fa-filter mr-2"></i>Filter
+        </button>
+      </div>
+    </form>
+  </div>
+  <!-- Records Table -->
+  <div class="clean-card rounded-lg overflow-hidden shadow">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Student</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Subject</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Score</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Term</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Date</th>
+            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for record in object_list %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center text-white">
+                  <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">{{ record.student.user_profile.user.get_full_name }}</div>
+                  <div class="text-sm text-gray-600">Grade {{ record.student.grade_level }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ record.subject }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                {% if record.score >= 80 %}bg-green-100 text-green-800
+                {% elif record.score >= 60 %}bg-yellow-100 text-yellow-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ record.score }}%
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.get_term_display }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.date_recorded|date:"M d, Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 1rem;">
+                <a href="{% url 'intervention:academic-record-update' record.pk %}" class="text-accent-600 hover:text-accent-700"><i class="fas fa-edit"></i></a>
+                <form method="post" action="{% url 'intervention:academic-record-delete' record.pk %}" class="delete-form" id="delete-form-{{ record.pk }}" style="margin: 0;">
+                  {% csrf_token %}
+                  <button type="button" class="text-red-600 hover:text-red-700 delete-btn" data-record-id="{{ record.pk }}" style="background:none;border:none;padding:0;cursor:pointer;display:inline;">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-4 text-center text-gray-600"><i class="fas fa-info-circle mr-2"></i>No academic records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+      <div class="text-sm text-gray-600">Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+      <div class="flex space-x-2">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Next</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.delete-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      var recordId = this.getAttribute('data-record-id');
+      Swal.fire({
+        title: '<span style="font-size:2rem;font-weight:700;color:#d33;">Confirm Deletion</span>',
+        html: '<div style="font-size:1.1rem;color:#374151;">Are you sure you want to delete this record?<br><span style="color:#d33;font-size:0.95rem;">This action cannot be undone.</span></div>',
+        icon: 'error',
+        iconHtml: '<i class="fas fa-trash-alt" style="color:#d33;font-size:2.5rem;"></i>',
+        showCancelButton: true,
+        confirmButtonColor: '#e3342f',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i> Yes, delete',
+        cancelButtonText: '<i class="fas fa-times mr-2"></i> Cancel',
+        customClass: {
+          popup: 'swal2-border-radius',
+          confirmButton: 'swal2-confirm-custom',
+          cancelButton: 'swal2-cancel-custom'
+        },
+        buttonsStyling: false
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById('delete-form-' + recordId).submit();
+        }
+      });
+    });
+  });
+});
+
+const style = document.createElement('style');
+style.innerHTML = `
+  .swal2-border-radius { border-radius: 1.5rem !important; }
+  .swal2-confirm-custom {
+    background: linear-gradient(90deg,#e3342f,#f87171);
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    padding: 0.75em 2em;
+    margin: 0 0.5em;
+  }
+  .swal2-cancel-custom {
+    background: #f3f4f6;
+    color: #374151 !important;
+    font-weight: 500;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    padding: 0.75em 2em;
+    margin: 0 0.5em;
+  }
+  .swal2-cancel-custom:hover {
+    background: #e0e7ef;
+  }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

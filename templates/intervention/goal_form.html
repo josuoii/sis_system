@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Edit Goal{% else %}Create New Goal{% endif %} - PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="text-sm breadcrumbs mb-2">
+            <a href="{% url 'intervention:goal-list' %}" class="text-accent-600 hover:text-accent-500 transition-colors">Goals</a>
+            <span class="mx-2 text-gray-400">/</span>
+            {% if form.instance.pk %}
+                <span class="text-gray-600">Edit Goal</span>
+            {% else %}
+                <span class="text-gray-600">Create New Goal</span>
+            {% endif %}
+        </nav>
+        <h1 class="text-3xl font-bold text-primary-700">
+            {% if form.instance.pk %}
+                <i class="fas fa-edit mr-3 text-accent-600"></i>Edit Goal
+            {% else %}
+                <i class="fas fa-bullseye mr-3 text-accent-600"></i>Create New Goal
+            {% endif %}
+        </h1>
+        {% if student %}
+        <p class="text-gray-600 mt-2">For student: <span class="font-medium text-primary-600">{{ student }}</span></p>
+        {% endif %}
+    </div>
+
+    <!-- Form Card -->
+    <div class="clean-card rounded-xl p-8">
+        <form method="post" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Student Selection Section -->
+            {% if not student %}
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-primary-700 border-b border-gray-200 pb-2">
+                    <i class="fas fa-user-graduate mr-2 text-accent-600"></i>Student Assignment
+                </h3>
+                
+                <div>
+                    <label for="{{ form.student.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Select Student *
+                    </label>
+                    {{ form.student }}
+                    
+                    {% if form.student.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.student.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Help text if no students available -->
+                    {% if form.student.field.queryset.count == 0 %}
+                    <div class="mt-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5 mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-yellow-800">No students available</h4>
+                                <p class="text-sm text-yellow-700 mt-1">
+                                    You need to have students assigned to your classes before creating goals. 
+                                    Please contact an administrator to assign students to your classes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Debug info (remove in production) -->
+                    {% if debug_student_count is not None %}
+                    <div class="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                        Debug: {{ debug_student_count }} students available
+                        {% if debug_students %}
+                            <br>Students: 
+                            {% for student in debug_students %}
+                                {{ student.user_profile.user.get_full_name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            {{ form.student }}
+            {% endif %}
+            
+            <!-- Goal Details Section -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-primary-700 border-b border-gray-200 pb-2">
+                    <i class="fas fa-target mr-2 text-accent-600"></i>Goal Details
+                </h3>
+                
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Goal Description *
+                    </label>
+                    {{ form.description }}
+                    <p class="mt-1 text-sm text-gray-500">
+                        Describe the specific, measurable goal for the student. Be clear and specific about what success looks like.
+                    </p>
+                    {% if form.description.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.description.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.target_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-2"></i>Target Date *
+                        </label>
+                        {{ form.target_date }}
+                        <p class="mt-1 text-sm text-gray-500">
+                            When should this goal be achieved?
+                        </p>
+                        {% if form.target_date.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.target_date.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-check-circle mr-2"></i>Goal Status
+                        </label>
+                        <div class="mt-2">
+                            <label class="inline-flex items-center">
+                                {{ form.completed }}
+                                <span class="ml-2 text-sm text-gray-700">Mark this goal as completed</span>
+                            </label>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Check this box when the goal has been successfully achieved.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Related Intervention Section -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-semibold text-primary-700 border-b border-gray-200 pb-2">
+                    <i class="fas fa-link mr-2 text-accent-600"></i>Related Information
+                </h3>
+                
+                <div>
+                    <label for="{{ form.intervention_plan.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Related Intervention Plan (Optional)
+                    </label>
+                    {{ form.intervention_plan }}
+                    <p class="mt-1 text-sm text-gray-500">
+                        Select an intervention plan if this goal is part of a specific intervention strategy.
+                    </p>
+                    {% if form.intervention_plan.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.intervention_plan.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form-wide errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-circle text-red-600 mt-0.5 mr-3"></i>
+                        <div>
+                            <h4 class="text-sm font-medium text-red-800 mb-2">Please correct the following errors:</h4>
+                            {% for error in form.non_field_errors %}
+                                <p class="text-sm text-red-700">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% if form.instance.pk %}{% url 'intervention:goal-detail' form.instance.pk %}{% else %}{% url 'intervention:goal-list' %}{% endif %}" 
+                   class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors clean-button">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 bg-accent-600 hover:bg-accent-700 rounded-lg text-white font-medium transition-colors clean-button">
+                    <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} mr-2"></i>
+                    {% if form.instance.pk %}Update Goal{% else %}Create Goal{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Style all form inputs consistently
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        if (input.type !== 'radio' && input.type !== 'checkbox' && input.type !== 'file') {
+            input.classList.add(
+                'w-full', 
+                'px-3', 
+                'py-2', 
+                'border', 
+                'border-gray-300', 
+                'rounded-lg', 
+                'text-sm', 
+                'focus:outline-none', 
+                'focus:ring-2', 
+                'focus:ring-accent-500', 
+                'focus:border-accent-500', 
+                'transition-colors'
+            );
+        }
+    });
+
+    // Style checkbox specifically
+    const checkbox = document.querySelector('input[type="checkbox"]');
+    if (checkbox) {
+        checkbox.classList.add(
+            'h-4', 
+            'w-4', 
+            'text-accent-600', 
+            'focus:ring-accent-500', 
+            'border-gray-300', 
+            'rounded'
+        );
+    }
+
+    // Set minimum date to today for target date
+    const dateField = document.querySelector('input[type="date"]');
+    if (dateField && !dateField.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateField.setAttribute('min', today);
+    }
+
+    // Auto-resize textarea
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Initial resize
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+
+    // Add visual feedback for form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-300', 'focus:ring-red-500', 'focus:border-red-500');
+                    field.classList.remove('border-gray-300', 'focus:ring-accent-500', 'focus:border-accent-500');
+                    isValid = false;
+                } else {
+                    field.classList.remove('border-red-300', 'focus:ring-red-500', 'focus:border-red-500');
+                    field.classList.add('border-gray-300', 'focus:ring-accent-500', 'focus:border-accent-500');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                // Scroll to first error
+                const firstError = form.querySelector('.border-red-300');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

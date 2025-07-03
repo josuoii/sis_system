@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; color: #222; }
+        h1 { color: #2563eb; font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem; }
+        h2 { color: #2563eb; font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+        th, td { border: 1px solid #bbb; padding: 6px 8px; }
+        th { background: #e0e7ff; color: #2563eb; }
+        tr:nth-child(even) { background: #f3f6fa; }
+    </style>
+</head>
+<body>
+    <h1>School Report</h1>
+    <p>Key statistics and analytics for your school</p>
+
+    <!-- Key Stats -->
+    <table>
+        <tr>
+            <th>Total Students</th>
+            <td>{{ total_students|default:0 }}</td>
+            <th>Total Teachers</th>
+            <td>{{ total_teachers|default:0 }}</td>
+        </tr>
+        <tr>
+            <th>Active Interventions</th>
+            <td>{{ active_interventions|default:0 }}</td>
+            <th>Avg Attendance</th>
+            <td>{{ avg_attendance|default:"-" }}%</td>
+        </tr>
+    </table>
+
+    <!-- Monthly Attendance Trend -->
+    <h2>Monthly Attendance Trend</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Attendance Rate (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in attendance_trend %}
+            <tr>
+                <td>{{ row.month }}</td>
+                <td>{{ row.rate }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2">No attendance data available.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Recent Activity Table -->
+    <h2>Recent Activity</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in recent_activity %}
+            <tr>
+                <td>{{ log.timestamp|date:"M j, Y H:i" }}</td>
+                <td>{{ log.user.get_full_name|default:log.user.username }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.details }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No recent activity found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html> 

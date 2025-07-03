@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Meeting Details - {{ meeting.student }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-primary-700">Meeting Details</h1>
+    </div>
+
+    <div class="clean-card rounded-lg p-6 mb-8 animate-fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <h2 class="text-xl font-semibold mb-2 text-primary-600">Participants</h2>
+                <div class="mb-2 text-gray-700"><span class="font-medium">Student:</span> {{ meeting.student }}</div>
+                <div class="mb-2 text-gray-700"><span class="font-medium">Parent:</span> {{ meeting.parent }}</div>
+                <div class="mb-2 text-gray-700"><span class="font-medium">Teacher:</span> {{ meeting.teacher }}</div>
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold mb-2 text-primary-600">Meeting Info</h2>
+                <div class="mb-2 text-gray-700"><span class="font-medium">Scheduled Time:</span> {{ meeting.scheduled_time|date:"M d, Y g:i A" }}</div>
+                <div class="mb-2 text-gray-700 flex items-center">
+                    <span class="font-medium">Completed:</span>
+                    {% if meeting.completed %}
+                        <span id="meeting-status" class="text-green-600 font-semibold ml-2">Yes</span>
+                    {% else %}
+                        <span id="meeting-status" class="text-yellow-600 font-semibold ml-2">No</span>
+                    {% endif %}
+                    {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+                        <button id="toggle-status-btn" class="ml-4 px-3 py-1 rounded bg-accent-600 hover:bg-accent-700 text-white text-xs font-medium transition-colors" data-meeting-id="{{ meeting.pk }}">
+                            {% if meeting.completed %}Mark as Upcoming{% else %}Mark as Completed{% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+                {% if meeting.intervention %}
+                <div class="mb-2 text-gray-700"><span class="font-medium">Related Intervention:</span> <a href="{% url 'intervention:intervention-detail' meeting.intervention.pk %}" class="text-accent-600 hover:text-accent-700">{{ meeting.intervention.title }}</a></div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2 text-primary-600">Agenda</h2>
+            <div class="bg-gray-50 p-4 rounded text-gray-800">{{ meeting.agenda }}</div>
+        </div>
+        {% if meeting.notes %}
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2 text-primary-600">Notes</h2>
+            <div class="bg-gray-50 p-4 rounded text-gray-800">{{ meeting.notes }}</div>
+        </div>
+        {% endif %}
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2 text-primary-600">Follow Up</h2>
+            <div class="mb-2 text-gray-700"><span class="font-medium">Follow Up Required:</span> {% if meeting.follow_up_required %}<span class="text-red-600 font-semibold">Yes</span>{% else %}<span class="text-gray-500">No</span>{% endif %}</div>
+            {% if meeting.follow_up_notes %}
+            <div class="bg-gray-50 p-4 rounded text-gray-800 mt-2">{{ meeting.follow_up_notes }}</div>
+            {% endif %}
+        </div>
+        <div class="flex justify-end space-x-2 pt-4 border-t border-gray-200">
+            <a href="{% url 'intervention:meeting-list' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-medium transition-colors"><i class="fas fa-arrow-left mr-2"></i>Back</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('toggle-status-btn');
+    if (btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const meetingId = btn.getAttribute('data-meeting-id');
+            fetch(`/meetings/${meetingId}/toggle-status/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Accept': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const statusSpan = document.getElementById('meeting-status');
+                    if (data.completed) {
+                        statusSpan.textContent = 'Yes';
+                        statusSpan.className = 'text-green-600 font-semibold ml-2';
+                        btn.textContent = 'Mark as Upcoming';
+                    } else {
+                        statusSpan.textContent = 'No';
+                        statusSpan.className = 'text-yellow-600 font-semibold ml-2';
+                        btn.textContent = 'Mark as Completed';
+                    }
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %} 

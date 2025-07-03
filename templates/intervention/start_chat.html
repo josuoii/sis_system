@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Start New Chat | PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-2xl font-bold mb-6">Start a New Chat</h1>
+    <div class="bg-white shadow rounded-lg p-6">
+        {% if users %}
+        <ul class="divide-y divide-gray-200">
+            {% for user in users %}
+            <li class="py-4 flex items-center justify-between">
+                <div>
+                    <span class="font-semibold text-gray-900">{{ user.get_full_name|default:user.username }}</span>
+                    <span class="ml-2 text-sm text-gray-500">({{ user.userprofile.get_user_type_display }})</span>
+                </div>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <button type="submit" class="px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white rounded-lg font-semibold">Chat</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-500">No users available to start a new chat.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

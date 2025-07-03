@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+
+{% block title %}Goal Details - {{ goal.description|truncatechars:30 }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-4xl font-extrabold text-blue-800 flex items-center gap-2">
+            <i class="fas fa-bullseye text-blue-400"></i> Goal Details
+        </h1>
+        {% if can_edit %}
+        <a href="{% url 'intervention:goal-update' goal.pk %}" 
+           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold shadow transition flex items-center gap-2">
+            <i class="fas fa-edit"></i> Edit Goal
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white border border-blue-100 rounded-2xl p-8 mb-10 shadow-lg animate-fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div>
+                <h2 class="text-lg font-bold text-blue-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-info-circle text-blue-400"></i> Goal Information
+                </h2>
+                <p class="text-gray-800 mb-4 text-lg">{{ goal.description }}</p>
+                <div class="flex items-center space-x-6 text-base">
+                    <div>
+                        <span class="text-blue-500 font-semibold">Student:</span>
+                        <span class="text-gray-900">{{ goal.student }}</span>
+                    </div>
+                    <div>
+                        <span class="text-blue-500 font-semibold">Target Date:</span>
+                        <span class="text-gray-900">{{ goal.target_date|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-blue-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-chart-line text-blue-400"></i> Progress
+                </h2>
+                <div class="mb-4">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-base font-medium text-gray-700">Completion</span>
+                        <span class="text-base font-bold text-blue-700">{{ completion_percentage|default:0 }}%</span>
+                    </div>
+                    <div class="w-full bg-blue-100 rounded-full h-3 shadow-inner">
+                        <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full shadow-lg transition-all duration-500" 
+                             style="width: {{ completion_percentage|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="flex items-center mt-2">
+                    <span class="text-base mr-2 text-gray-700">Status:</span>
+                    <span class="px-3 py-1 text-sm font-bold rounded-full shadow 
+                              {% if goal.completed %}bg-green-600 text-white border border-green-700
+                              {% else %}bg-yellow-400 text-yellow-900 border border-yellow-500{% endif %}">
+                        {% if goal.completed %}<i class="fas fa-check-circle mr-1"></i>Completed{% else %}<i class="fas fa-hourglass-half mr-1"></i>In Progress{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {% if goal.intervention_plan %}
+        <div class="mb-6">
+            <h2 class="text-lg font-bold text-blue-700 mb-2 flex items-center gap-2">
+                <i class="fas fa-link text-blue-400"></i> Related Intervention
+            </h2>
+            <a href="{% url 'intervention:intervention-detail' goal.intervention_plan.pk %}" 
+               class="text-blue-600 hover:text-blue-800 font-semibold underline">
+                {{ goal.intervention_plan.title }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="bg-white border border-blue-100 rounded-2xl p-8 mb-8 shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-blue-700 flex items-center gap-2">
+                <i class="fas fa-tasks text-blue-400"></i> Milestones
+            </h2>
+            {% if can_edit %}
+            <a href="{% url 'intervention:milestone-create' goal.pk %}" 
+               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold shadow flex items-center gap-2">
+                <i class="fas fa-plus"></i> Add Milestone
+            </a>
+            {% endif %}
+        </div>
+
+        {% if milestones %}
+        <div class="space-y-4">
+            {% for milestone in milestones %}
+            <div class="border-l-4 border-blue-400 bg-blue-50 rounded-lg p-4 hover:bg-blue-100 transition-colors shadow">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-blue-900">{{ milestone.description }}</h3>
+                        <div class="flex items-center space-x-6 text-sm mt-2">
+                            <div>
+                                <span class="text-blue-500 font-semibold">Target:</span>
+                                <span class="text-gray-900">{{ milestone.target_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div>
+                                <span class="text-blue-500 font-semibold">Completion:</span>
+                                <span class="text-gray-900">{{ milestone.completion }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        {% if can_edit %}
+                        <a href="{% url 'intervention:milestone-update' milestone.pk %}" 
+                           class="p-2 text-blue-500 hover:text-blue-700 bg-white rounded-full shadow transition">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="post" action="{% url 'intervention:milestone-delete' milestone.pk %}" class="inline delete-milestone-form">
+                            {% csrf_token %}
+                            <button type="button" class="p-2 text-red-500 hover:text-white hover:bg-red-500 rounded-full shadow transition delete-milestone-btn" title="Delete Milestone">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if milestone.notes %}
+                <div class="mt-3 text-sm text-blue-800 bg-blue-100 p-2 rounded">
+                    <i class="fas fa-sticky-note mr-1"></i>{{ milestone.notes }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-blue-400">
+            <i class="fas fa-tasks text-4xl mb-3"></i>
+            <p>No milestones have been added to this goal yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.delete-milestone-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const form = btn.closest('form');
+        Swal.fire({
+          title: '<span style="font-size:2rem;font-weight:700;color:#d33;">Confirm Deletion</span>',
+          html: '<div style="font-size:1.1rem;color:#374151;">Are you sure you want to delete this goal?<br><span style="color:#d33;font-size:0.95rem;">This action cannot be undone.</span></div>',
+          icon: 'error',
+          iconHtml: '<i class="fas fa-bullseye" style="color:#d33;font-size:2.5rem;"></i>',
+          showCancelButton: true,
+          confirmButtonColor: '#e3342f',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i> Yes, delete',
+          cancelButtonText: '<i class="fas fa-times mr-2"></i> Cancel',
+          customClass: {
+            popup: 'swal2-border-radius',
+            confirmButton: 'swal2-confirm-custom',
+            cancelButton: 'swal2-cancel-custom'
+          },
+          buttonsStyling: false
+        }).then((result) => {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+    });
+  });
+
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .swal2-border-radius { border-radius: 1.5rem !important; }
+    .swal2-confirm-custom {
+      background: linear-gradient(90deg,#e3342f,#f87171);
+      color: #fff !important;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 0.75rem;
+      padding: 0.75em 2em;
+      margin: 0 0.5em;
+    }
+    .swal2-cancel-custom {
+      background: #f3f4f6;
+      color: #374151 !important;
+      font-weight: 500;
+      font-size: 1rem;
+      border-radius: 0.75rem;
+      padding: 0.75em 2em;
+      margin: 0 0.5em;
+    }
+    .swal2-cancel-custom:hover {
+      background: #e0e7ef;
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+{% endblock %}

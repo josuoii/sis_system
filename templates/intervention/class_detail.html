@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ class.name }} - Class Details{% endblock %}
+
+{% block content %}
+<div class="space-y-8 bg-gradient-to-br from-white via-blue-100 to-blue-200 min-h-screen py-10 px-2 md:px-8">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div>
+      <nav class="text-sm mb-2">
+        <a href="{% url 'intervention:class-list' %}" class="text-blue-600 hover:text-blue-700">Classes</a>
+        <span class="mx-2 text-gray-400">/</span>
+        <span class="text-gray-600">{{ class.name }}</span>
+      </nav>
+      <h1 class="text-2xl font-bold text-blue-600 mb-2">{{ class.name }}</h1>
+      <p class="text-blue-500">{{ class.subject }} - {{ class.academic_year }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
+      <a href="{% url 'intervention:class-list' %}" 
+         class="px-4 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg text-white text-sm font-medium shadow transition flex items-center">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Classes
+      </a>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-8">
+      <!-- Class Information -->
+      <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg">
+        <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
+          <i class="fas fa-info-circle mr-2 text-blue-500"></i>Class Information
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-blue-700 mb-1">Teacher</label>
+            <p class="text-blue-900 font-medium">{{ class.teacher.user_profile.user.get_full_name }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-blue-700 mb-1">Subject</label>
+            <p class="text-blue-900 font-medium">{{ class.subject }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-blue-700 mb-1">Academic Year</label>
+            <p class="text-blue-900 font-medium">{{ class.academic_year }}</p>
+          </div>
+          {% if class.room_number %}
+          <div>
+            <label class="block text-sm font-medium text-blue-700 mb-1">Room Number</label>
+            <p class="text-blue-900 font-medium">{{ class.room_number }}</p>
+          </div>
+          {% endif %}
+          {% if class.schedule %}
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-blue-700 mb-1">Schedule</label>
+            <p class="text-blue-900 font-medium">{{ class.schedule }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <!-- Students List -->
+      <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-lg font-semibold text-blue-700 flex items-center">
+            <i class="fas fa-users mr-2 text-blue-500"></i>Students ({{ students.count }})
+          </h2>
+        </div>
+        {% if students %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% for student in students %}
+          <div class="border border-blue-100 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                  {{ student.user_profile.user.first_name.0 }}{{ student.user_profile.user.last_name.0 }}
+                </div>
+                <div>
+                  <h3 class="font-medium text-blue-900">
+                    <a href="{% url 'intervention:student-detail' student.pk %}" class="hover:text-blue-600 transition-colors">
+                      {{ student.user_profile.user.get_full_name }}
+                    </a>
+                  </h3>
+                  <p class="text-sm text-blue-500">Grade {{ student.grade_level }}</p>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    {% if student.iep %}
+                    <span class="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">IEP</span>
+                    {% endif %}
+                    {% if student.ell %}
+                    <span class="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full font-medium">ELL</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <a href="{% url 'intervention:student-detail' student.pk %}" 
+                 class="text-blue-600 hover:text-blue-700 transition-colors">
+                <i class="fas fa-eye"></i>
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+          <i class="fas fa-user-plus text-4xl text-blue-200 mb-4"></i>
+          <h3 class="text-lg font-medium text-blue-900 mb-2">No Students Assigned</h3>
+          <p class="text-blue-600 mb-4">This class doesn't have any students assigned yet.</p>
+        </div>
+        {% endif %}
+      </div>
+      <!-- Recent Interventions -->
+      {% if recent_interventions %}
+      <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg">
+        <h2 class="text-lg font-semibold text-blue-700 mb-6 flex items-center">
+          <i class="fas fa-clipboard-list mr-2 text-blue-500"></i>Recent Interventions
+        </h2>
+        <div class="space-y-4">
+          {% for intervention in recent_interventions %}
+          <div class="border border-blue-100 rounded-lg p-4 hover:border-blue-300 transition-colors">
+            <div class="flex justify-between items-start">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-medium text-blue-900 mb-1">
+                  <a href="{% url 'intervention:intervention-detail' intervention.pk %}" class="hover:text-blue-600 transition-colors">
+                    {{ intervention.title }}
+                  </a>
+                </h3>
+                <p class="text-sm text-blue-500 mb-1">
+                  Student: {{ intervention.student.user_profile.user.get_full_name }}
+                </p>
+                <p class="text-xs text-blue-400">
+                  Created: {{ intervention.created_at|date:"M j, Y" }}
+                </p>
+              </div>
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ml-4 flex-shrink-0
+                {% if intervention.status == 'ACTIVE' %}bg-blue-50 text-blue-700
+                {% elif intervention.status == 'COMPLETED' %}bg-blue-200 text-blue-800
+                {% elif intervention.status == 'ON_HOLD' %}bg-yellow-50 text-yellow-700
+                {% else %}bg-gray-50 text-gray-700{% endif %}">
+                {{ intervention.get_status_display }}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-6 text-center">
+          <a href="{% url 'intervention:intervention-list' %}?class={{ class.pk }}" 
+             class="text-blue-600 hover:text-blue-700 font-medium">
+            View All Interventions for This Class →
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Sidebar -->
+    <div class="space-y-6">
+      <!-- Quick Stats -->
+      <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg">
+        <h3 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
+          <i class="fas fa-chart-bar mr-2 text-blue-500"></i>Quick Stats
+        </h3>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-blue-600">Total Students</span>
+            <span class="text-blue-900 font-semibold">{{ students.count }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-blue-600">Attendance Rate</span>
+            <span class="text-blue-900 font-semibold">{{ attendance_rate|floatformat:1|default:"--" }}%</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-blue-600">Active Interventions</span>
+            <span class="text-blue-900 font-semibold">{{ recent_interventions.count|default:0 }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-blue-600">IEP Students</span>
+            <span class="text-blue-900 font-semibold">
+              {% with iep_count=0 %}
+                {% for student in students %}
+                  {% if student.iep %}{% with iep_count=iep_count|add:1 %}{% endwith %}{% endif %}
+                {% endfor %}
+                {{ iep_count|default:0 }}
+              {% endwith %}
+            </span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-blue-600">ELL Students</span>
+            <span class="text-blue-900 font-semibold">
+              {% with ell_count=0 %}
+                {% for student in students %}
+                  {% if student.ell %}{% with ell_count=ell_count|add:1 %}{% endwith %}{% endif %}
+                {% endfor %}
+                {{ ell_count|default:0 }}
+              {% endwith %}
+            </span>
+          </div>
+        </div>
+      </div>
+      <!-- Teacher Information -->
+      <div class="bg-white border border-blue-100 rounded-2xl p-6 shadow-lg">
+        <h3 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
+          <i class="fas fa-user-tie mr-2 text-blue-500"></i>Teacher Information
+        </h3>
+        <div class="space-y-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+              <i class="fas fa-user text-lg"></i>
+            </div>
+            <div>
+              <p class="font-medium text-blue-900">{{ class.teacher.user_profile.user.get_full_name }}</p>
+              <p class="text-sm text-blue-500">{{ class.teacher.user_profile.user.email }}</p>
+            </div>
+          </div>
+          {% if class.teacher.user_profile.phone %}
+          <div class="flex items-center text-sm text-blue-500">
+            <i class="fas fa-phone mr-2 w-4 text-center text-blue-400"></i>
+            <span>{{ class.teacher.user_profile.phone }}</span>
+          </div>
+          {% endif %}
+          {% if class.teacher.qualification %}
+          <div class="flex items-center text-sm text-blue-500">
+            <i class="fas fa-graduation-cap mr-2 w-4 text-center text-blue-400"></i>
+            <span>{{ class.teacher.qualification }}</span>
+          </div>
+          {% endif %}
+          <a href="{% url 'intervention:message-list' %}?recipient={{ class.teacher.user_profile.pk }}" 
+             class="block w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white text-center text-sm font-medium transition-colors">
+            <i class="fas fa-envelope mr-2"></i>Send Message
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

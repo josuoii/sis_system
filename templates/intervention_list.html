@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Interventions - PDIE System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-clipboard-list me-2"></i>
+        {% if user.userprofile.user_type == 'TEACHER' %}
+            My Interventions
+        {% elif user.userprofile.user_type == 'PARENT' %}
+            Children's Interventions
+        {% elif user.userprofile.user_type == 'STUDENT' %}
+            My Interventions
+        {% else %}
+            All Interventions
+        {% endif %}
+    </h2>
+    
+    {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+        <a href="{% url 'intervention-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Intervention
+        </a>
+    {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ request.GET.search }}" placeholder="Search by title or student name...">
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All Statuses</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-search me-1"></i>Filter
+                </button>
+                <a href="{% url 'intervention-list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Interventions List -->
+<div class="row">
+    {% for intervention in interventions %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <a href="{% url 'intervention-detail' intervention.pk %}" class="text-decoration-none">
+                            {{ intervention.title }}
+                        </a>
+                    </h5>
+                    <span class="badge bg-{% if intervention.status == 'ACTIVE' %}success{% elif intervention.status == 'DRAFT' %}warning{% elif intervention.status == 'COMPLETED' %}primary{% else %}secondary{% endif %}">
+                        {{ intervention.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <strong>Student:</strong><br>
+                            <span class="text-muted">{{ intervention.student }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Created by:</strong><br>
+                            <span class="text-muted">{{ intervention.created_by }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <strong>Start Date:</strong><br>
+                            <span class="text-muted">{{ intervention.start_date }}</span>
+                        </div>
+                        {% if intervention.end_date %}
+                            <div class="col-sm-6">
+                                <strong>End Date:</strong><br>
+                                <span class="text-muted">{{ intervention.end_date }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="card-text">{{ intervention.description|truncatechars:120 }}</p>
+                    
+                    {% if intervention.progress_score %}
+                        <div class="mb-3">
+                            <strong>Progress Score:</strong>
+                            <div class="progress mt-1">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ intervention.progress_score }}0%"
+                                     aria-valuenow="{{ intervention.progress_score }}" 
+                                     aria-valuemin="0" aria-valuemax="10">
+                                    {{ intervention.progress_score }}/10
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if intervention.collaborating_teachers.exists %}
+                        <div class="mb-3">
+                            <strong>Collaborating Teachers:</strong><br>
+                            <small class="text-muted">
+                                {% for teacher in intervention.collaborating_teachers.all %}
+                                    {{ teacher }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>
+                        Created {{ intervention.created_at|timesince }} ago
+                    </small>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'intervention-detail' intervention.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>View
+                        </a>
+                        {% if user.userprofile.user_type == 'TEACHER' and intervention.created_by == user.userprofile.teacher %}
+                            <a href="{% url 'intervention-update' intervention.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'intervention-pdf' intervention.pk %}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-file-pdf me-1"></i>PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Interventions Found</h4>
+                    <p class="text-muted">
+                        {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+                            Get started by creating your first intervention plan.
+                        {% else %}
+                            No interventions have been assigned yet.
+                        {% endif %}
+                    </p>
+                    {% if user.userprofile.user_type == 'TEACHER' or user.userprofile.user_type == 'ADMIN' %}
+                        <a href="{% url 'intervention-create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create Intervention
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="Interventions pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

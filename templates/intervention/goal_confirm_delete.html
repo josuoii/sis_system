@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Goal - {{ object.description|truncatechars:30 }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="holographic-card rounded-lg p-6">
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-full bg-red-900/30 flex items-center justify-center mr-4">
+                <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-red-400">Delete Goal</h1>
+                <p class="text-gray-400">This action cannot be undone</p>
+            </div>
+        </div>
+
+        <div class="bg-futuristic-dark rounded-lg p-4 mb-6">
+            <h3 class="font-semibold text-white mb-2">Goal Details</h3>
+            <p class="text-gray-300 mb-2">{{ object.description }}</p>
+            <div class="text-sm text-gray-400">
+                <p><span class="font-medium">Student:</span> {{ object.student }}</p>
+                <p><span class="font-medium">Target Date:</span> {{ object.target_date|date:"M d, Y" }}</p>
+                {% if object.intervention_plan %}
+                <p><span class="font-medium">Related Intervention:</span> {{ object.intervention_plan.title }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if object.milestone_set.exists %}
+        <div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle text-yellow-400 mr-2"></i>
+                <span class="text-yellow-300 font-medium">Warning</span>
+            </div>
+            <p class="text-yellow-200 mt-1">
+                This goal has {{ object.milestone_set.count }} milestone(s) that will also be deleted.
+            </p>
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'intervention:goal-detail' object.pk %}" 
+                   class="px-4 py-2 border border-gray-500 rounded-md text-gray-200 hover:bg-gray-700/50 transition-colors">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-white transition-colors">
+                    <i class="fas fa-trash mr-2"></i>Delete Goal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

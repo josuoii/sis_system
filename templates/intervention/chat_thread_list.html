@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}My Conversations | PDIE System{% endblock %}
+
+{% block extra_css %}
+<style>
+  .fade-in {
+    animation: fadeInUp 0.4s ease-out both;
+  }
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-3xl font-semibold text-gray-800 tracking-tight">
+        <i class="fas fa-comments text-accent-500 mr-2"></i> My Conversations
+      </h1>
+      <a href="{% url 'intervention:start-chat' %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-md shadow-sm transition">
+        <i class="fas fa-plus mr-2 text-sm"></i> New Chat
+      </a>
+    </div>
+
+    <!-- Conversation Threads -->
+    <div class="bg-white border border-gray-200 shadow-sm rounded-xl">
+      <ul role="list" class="divide-y divide-gray-100">
+        {% for thread in threads %}
+        <li class="fade-in">
+          <a href="{% url 'intervention:chat-thread-detail' thread.pk %}" class="flex items-center gap-4 px-6 py-5 hover:bg-gray-50 transition rounded-md">
+            <!-- Avatar -->
+            <div class="flex-shrink-0 relative">
+              {% if thread.other_participant.userprofile.profile_picture %}
+                <img src="{{ thread.other_participant.userprofile.profile_picture.url }}" class="w-14 h-14 rounded-full object-cover shadow-md" alt="{{ thread.other_participant.get_full_name|default:thread.other_participant.username }}">
+              {% else %}
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-accent-200 to-accent-400 flex items-center justify-center text-accent-700 text-xl font-extrabold uppercase shadow-md">
+                  <span>{{ thread.other_participant.get_full_name|default:thread.other_participant.username|slice:":2" }}</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Thread Details -->
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-center">
+                <p class="text-base font-medium text-gray-800">
+                  {{ thread.other_participant.get_full_name|default:thread.other_participant.username }}
+                </p>
+                {% if thread.last_message %}
+                <span class="text-xs text-gray-400 whitespace-nowrap">
+                  {{ thread.last_message.timestamp|date:"d M, Y H:i" }}
+                </span>
+                {% endif %}
+              </div>
+              <p class="text-sm text-gray-500">
+                {{ thread.other_participant.userprofile.get_user_type_display|default:"User" }}
+              </p>
+              <p class="text-sm text-gray-600 mt-1 line-clamp-1">
+                {% if thread.last_message %}
+                  {{ thread.last_message.content|truncatechars:60 }}
+                {% else %}
+                  <span class="italic text-gray-400">No messages yet.</span>
+                {% endif %}
+              </p>
+            </div>
+
+            <!-- Chevron Icon -->
+            <div>
+              <i class="fas fa-chevron-right text-gray-300 text-sm"></i>
+            </div>
+          </a>
+        </li>
+        {% empty %}
+        <li>
+          <div class="px-6 py-8 text-center text-gray-500">
+            <p class="text-base mb-2">You have no conversations yet.</p>
+            <a href="{% url 'intervention:start-chat' %}" class="text-accent-600 hover:underline text-sm">Start a new one</a>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

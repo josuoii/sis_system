@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}Parent Dashboard - PDIE System{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Welcome Header -->
+    <div class="bg-white clean-card p-6 sm:p-8 mb-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Welcome, {{ user.get_full_name|default:user.username }}!</h1>
+                <p class="text-gray-500 mt-1">{{ current_date|date:"l, F j, Y" }}</p>
+                {% if parent.occupation %}
+                    <p class="text-gray-600 text-sm mt-2"><i class="fas fa-briefcase mr-2 text-gray-400"></i>{{ parent.occupation }}{% if parent.employer %} at {{ parent.employer }}{% endif %}</p>
+                {% endif %}
+            </div>
+            <div class="text-left sm:text-right mt-4 sm:mt-0">
+                <div class="text-2xl font-bold text-accent-600">{{ total_children }}</div>
+                <div class="text-gray-500 text-sm">{{ total_children|pluralize:"Child,Children" }} Linked</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="clean-card p-5">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-accent-100 text-accent-600">
+                    <i class="fas fa-clipboard-list text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Total Interventions</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_interventions }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="clean-card p-5">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-accent-100 text-accent-600">
+                    <i class="fas fa-play-circle text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Active Plans</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ active_interventions }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="clean-card p-5">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-accent-100 text-accent-600">
+                    <i class="fas fa-calendar text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Upcoming Meetings</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ upcoming_meetings|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="clean-card p-5">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-accent-100 text-accent-600">
+                    <i class="fas fa-child text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Children</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_children }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Children Overview -->
+    <div class="clean-card">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-child mr-3 text-gray-500"></i>My Children
+            </h3>
+        </div>
+        <div class="p-6">
+            {% if child_stats %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for stat in child_stats %}
+                        <div class="bg-gray-50 rounded-lg p-5 border border-gray-200 hover:border-accent-400 hover:shadow-sm transition-all">
+                            <div class="flex items-center mb-4">
+                                <div class="w-12 h-12 rounded-full bg-accent-500 flex items-center justify-center text-white font-bold text-lg">
+                                    {{ stat.child.user_profile.user.first_name.0 }}{{ stat.child.user_profile.user.last_name.0 }}
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-semibold text-gray-900">{{ stat.child.user_profile.user.get_full_name }}</h4>
+                                    <p class="text-gray-500 text-sm">Grade {{ stat.child.get_grade_level_display }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Child Stats -->
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="text-center bg-white p-3 rounded-md border">
+                                    <div class="text-2xl font-bold text-accent-600">{{ stat.active_interventions }}</div>
+                                    <div class="text-xs text-gray-500">Active Plans</div>
+                                </div>
+                                <div class="text-center bg-white p-3 rounded-md border">
+                                    <div class="text-2xl font-bold text-accent-600">{{ stat.active_goals }}</div>
+                                    <div class="text-xs text-gray-500">Active Goals</div>
+                                </div>
+                            </div>
+
+                            <!-- Latest Progress -->
+                            {% if stat.latest_progress %}
+                                <div class="bg-white rounded p-3 border border-gray-200">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Latest Progress</p>
+                                            <p class="text-sm font-medium text-gray-800">{{ stat.latest_progress.date|date:"M j" }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold {% if stat.latest_progress.improvement_score >= 8 %}text-green-600{% elif stat.latest_progress.improvement_score >= 6 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                                {{ stat.latest_progress.improvement_score }}/10
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="bg-white rounded p-3 border text-center">
+                                    <p class="text-xs text-gray-500">No recent progress updates</p>
+                                </div>
+                            {% endif %}
+
+                            <!-- Special Indicators -->
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                {% if stat.child.iep %}
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">IEP</span>
+                                {% endif %}
+                                {% if stat.child.ell %}
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">ELL</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-child text-5xl text-gray-400 mb-4"></i>
+                    <h4 class="text-lg font-medium text-gray-800">No children registered.</h4>
+                    <p class="text-gray-500 text-sm mt-2 max-w-md mx-auto">Please contact your school administrator to link your children's profiles to your parent account.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Interventions -->
+        <div class="lg:col-span-2 clean-card">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-clipboard-list mr-3 text-gray-500"></i>Recent Interventions
+                </h3>
+                <a href="{% url 'intervention:intervention-list' %}" class="text-sm font-medium text-accent-600 hover:text-accent-700">
+                    View All &rarr;
+                </a>
+            </div>
+            <div class="p-6">
+                {% if interventions %}
+                    <div class="space-y-4">
+                        {% for intervention in interventions %}
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-accent-400 hover:shadow-sm transition-all">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-semibold text-gray-900">
+                                        <a href="{% url 'intervention:intervention-detail' intervention.pk %}" class="hover:text-accent-600">
+                                            {{ intervention.title }}
+                                        </a>
+                                    </h4>
+                                    <span class="px-2 py-1 text-xs rounded-full font-medium {% if intervention.status == 'ACTIVE' %}bg-green-100 text-green-800{% elif intervention.status == 'DRAFT' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-200 text-gray-800{% endif %}">
+                                        {{ intervention.get_status_display }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm text-gray-500 mb-2">
+                                    <span><i class="fas fa-user-graduate mr-2"></i>{{ intervention.student }}</span>
+                                    <span><i class="fas fa-chalkboard-teacher mr-2"></i>{{ intervention.created_by }}</span>
+                                </div>
+                                <p class="text-gray-500 text-xs">
+                                    <i class="fas fa-calendar mr-2"></i>Started: {{ intervention.start_date|date:"M j, Y" }}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-clipboard-list text-5xl text-gray-400 mb-4"></i>
+                        <h4 class="text-lg font-medium text-gray-800">No interventions for your children yet.</h4>
+                        <p class="text-gray-500 text-sm mt-2">When a teacher creates an intervention plan, it will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Upcoming Meetings -->
+            <div class="clean-card">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-calendar-alt mr-3 text-gray-500"></i>Upcoming Meetings
+                    </h3>
+                </div>
+                <div class="p-6">
+                    {% if upcoming_meetings %}
+                        <div class="space-y-4">
+                            {% for meeting in upcoming_meetings %}
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <div class="font-semibold text-gray-800 text-sm">
+                                        <i class="fas fa-user-graduate mr-2 text-gray-400"></i>{{ meeting.student }}
+                                    </div>
+                                    <div class="text-gray-500 text-sm mt-1">
+                                        <i class="fas fa-chalkboard-teacher mr-2 text-gray-400"></i>{{ meeting.teacher }}
+                                    </div>
+                                    <div class="text-gray-500 text-sm mt-2 pt-2 border-t border-gray-200">
+                                        <i class="fas fa-clock mr-2 text-gray-400"></i>{{ meeting.scheduled_time|date:"D, M j" }} at {{ meeting.scheduled_time|date:"g:i A" }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                         <div class="text-center py-8">
+                            <i class="fas fa-calendar-check text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-500 text-sm">No upcoming meetings.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Progress -->
+            <div class="clean-card">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-chart-line mr-3 text-gray-500"></i>Recent Progress
+                    </h3>
+                </div>
+                <div class="p-6">
+                    {% if recent_progress %}
+                        <div class="space-y-4">
+                            {% for progress in recent_progress|slice:":5" %}
+                                <a href="#" class="block bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-accent-400 hover:shadow-sm transition-all">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-800 text-sm">
+                                                {{ progress.intervention.student }}
+                                            </div>
+                                            <div class="text-gray-500 text-xs">
+                                                {{ progress.intervention.title|truncatechars:25 }}
+                                            </div>
+                                        </div>
+                                        <div class="text-right ml-2">
+                                            <div class="text-lg font-bold {% if progress.improvement_score >= 8 %}text-green-600{% elif progress.improvement_score >= 6 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                                {{ progress.improvement_score }}/10
+                                            </div>
+                                            <div class="text-xs text-gray-400">{{ progress.date|date:"M j" }}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <i class="fas fa-chart-bar text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-500 text-sm">No progress updates yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block extra_css %}
+<style>
+  input, select, textarea {
+    color: #1e293b !important; /* Tailwind's slate-800 for strong contrast */
+  }
+  ::placeholder {
+    color: #64748b !important; /* Tailwind's slate-400 for placeholder */
+    opacity: 1;
+  }
+</style>
+{% endblock %}
+
+{% block title %}
+  {% if form.instance.pk %}Edit Class{% else %}Create New Class{% endif %} - PDIE System
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate-fade-in">
+  <!-- Header -->
+  <div class="mb-8">
+    <nav class="text-sm breadcrumbs mb-2">
+      <a href="{% url 'intervention:class-list' %}" class="text-blue-400 hover:text-blue-600">Classes</a>
+      <span class="mx-2 text-blue-200">/</span>
+      {% if form.instance.pk %}
+      <a href="{% url 'intervention:class-detail' form.instance.pk %}" class="text-blue-400 hover:text-blue-600">{{ form.instance.name }}</a>
+      <span class="mx-2 text-blue-200">/</span>
+      <span class="text-blue-200">Edit</span>
+      {% else %}
+      <span class="text-blue-200">Create New Class</span>
+      {% endif %}
+    </nav>
+    <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-blue-700">
+      {% if form.instance.pk %}
+        <i class="fas fa-edit mr-2"></i>Edit Class
+      {% else %}
+        <i class="fas fa-plus mr-2"></i>Create New Class
+      {% endif %}
+    </h1>
+  </div>
+
+  <!-- Form -->
+  <div class="bg-white rounded-2xl shadow-xl p-8">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Class Name and Subject -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="{{ form.name.id_for_label }}" class="block text-base font-semibold text-blue-700 mb-2">
+            <i class="fas fa-chalkboard mr-2"></i>Class Name *
+          </label>
+          {{ form.name|add_class:'text-gray-900' }}
+          {% if form.name.errors %}
+            <div class="mt-1 text-sm text-red-500">
+              {% for error in form.name.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="{{ form.subject.id_for_label }}" class="block text-base font-semibold text-blue-700 mb-2">
+            <i class="fas fa-book mr-2"></i>Subject *
+          </label>
+          {{ form.subject|add_class:'text-gray-900' }}
+          {% if form.subject.errors %}
+            <div class="mt-1 text-sm text-red-500">
+              {% for error in form.subject.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Teacher and Academic Year -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="{{ form.teacher.id_for_label }}" class="block text-base font-semibold text-blue-700 mb-2">
+            <i class="fas fa-user-tie mr-2"></i>Teacher *
+          </label>
+          {{ form.teacher|add_class:'text-gray-900' }}
+          {% if form.teacher.errors %}
+            <div class="mt-1 text-sm text-red-500">
+              {% for error in form.teacher.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="{{ form.academic_year.id_for_label }}" class="block text-base font-semibold text-blue-700 mb-2">
+            <i class="fas fa-calendar-alt mr-2"></i>Academic Year *
+          </label>
+          {{ form.academic_year|add_class:'text-gray-900' }}
+          {% if form.academic_year.errors %}
+            <div class="mt-1 text-sm text-red-500">
+              {% for error in form.academic_year.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <p class="mt-1 text-xs text-blue-400">
+            <i class="fas fa-info-circle mr-1"></i>
+            Format: YYYY-YYYY (e.g., 2024-2025)
+          </p>
+        </div>
+      </div>
+
+      <!-- Room Number and Schedule -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="{{ form.room_number.id_for_label }}" class="block text-base font-semibold text-blue-700 mb-2">
+            <i class="fas fa-door-open mr-2"></i>Room Number
+          </label>
+          {{ form.room_number|add_class:'text-gray-900' }}
+          {% if form.room_number.errors %}
+            <div class="mt-1 text-sm text-red-500">
+              {% for error in form.room_number.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="{{ form.schedule.id_for_label }}" class="block text-base font-semibold text-blue-700 mb-2">
+            <i class="fas fa-clock mr-2"></i>Schedule
+          </label>
+          {{ form.schedule|add_class:'text-gray-900' }}
+          {% if form.schedule.errors %}
+            <div class="mt-1 text-sm text-red-500">
+              {% for error in form.schedule.errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <p class="mt-1 text-xs text-blue-400">
+            <i class="fas fa-info-circle mr-1"></i>
+            e.g., "Mon/Wed/Fri 9:00-10:00 AM"
+          </p>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-blue-200">
+        <a href="{% if form.instance.pk %}{% url 'intervention:class-detail' form.instance.pk %}{% else %}{% url 'intervention:class-list' %}{% endif %}" 
+           class="px-6 py-3 bg-blue-100 hover:bg-blue-200 rounded-md text-blue-700 font-medium transition-colors text-center">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </a>
+        
+        <button type="submit" 
+                class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-md text-white font-medium transition-all shadow-lg">
+          {% if form.instance.pk %}
+            <i class="fas fa-save mr-2"></i>Update Class
+          {% else %}
+            <i class="fas fa-plus mr-2"></i>Create Class
+          {% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Help Section -->
+  <div class="mt-8 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-6 shadow">
+    <h3 class="text-lg font-semibold text-blue-700 mb-4">
+      <i class="fas fa-question-circle mr-2"></i>Need Help?
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-blue-700">
+      <div>
+        <h4 class="font-medium text-blue-800 mb-2">Class Information</h4>
+        <ul class="space-y-1">
+          <li><i class="fas fa-check text-green-500 mr-2"></i>Use descriptive names for easy identification</li>
+          <li><i class="fas fa-check text-green-500 mr-2"></i>Include grade level in class name if helpful</li>
+          <li><i class="fas fa-check text-green-500 mr-2"></i>Academic year should follow YYYY-YYYY format</li>
+        </ul>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-blue-800 mb-2">Next Steps</h4>
+        <ul class="space-y-1">
+          <li><i class="fas fa-arrow-right text-blue-400 mr-2"></i>After creating, assign students to the class</li>
+          <li><i class="fas fa-arrow-right text-blue-400 mr-2"></i>Set up attendance tracking</li>
+          <li><i class="fas fa-arrow-right text-blue-400 mr-2"></i>Create intervention plans as needed</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Auto-format academic year input
+document.addEventListener('DOMContentLoaded', function() {
+  const yearInput = document.getElementById('{{ form.academic_year.id_for_label }}');
+  if (yearInput) {
+    yearInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+      if (value.length >= 4) {
+        const currentYear = value.substring(0, 4);
+        const nextYear = parseInt(currentYear) + 1;
+        e.target.value = currentYear + '-' + nextYear;
+      }
+    });
+  }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+  const requiredFields = ['{{ form.name.id_for_label }}', '{{ form.teacher.id_for_label }}', '{{ form.subject.id_for_label }}', '{{ form.academic_year.id_for_label }}'];
+  let hasErrors = false;
+  
+  requiredFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field && !field.value.trim()) {
+      hasErrors = true;
+      field.classList.add('border-red-500');
+      // Remove error styling after user starts typing
+      field.addEventListener('input', function() {
+        this.classList.remove('border-red-500');
+      });
+    }
+  });
+  
+  if (hasErrors) {
+    e.preventDefault();
+    alert('Please fill in all required fields.');
+  }
+});
+</script>
+{% endblock %}

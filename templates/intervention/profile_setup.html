@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Setup | PDIE System{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex flex-col space-y-8">
+        <!-- Setup Header -->
+        <div class="text-center">
+            <div class="mx-auto w-20 h-20 rounded-full bg-accent-600 flex items-center justify-center text-white text-3xl mb-4 shadow-lg">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">Complete Your Profile</h1>
+            <p class="text-gray-600 mt-2">Please provide some additional information to get started</p>
+        </div>
+
+        <!-- Setup Form -->
+        <div class="clean-card rounded-lg p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                <!-- Role Selection -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Select Your Role</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="border border-gray-200 rounded-lg p-4 hover:border-accent-300 hover:shadow-sm transition-all cursor-pointer has-[:checked]:border-accent-500 has-[:checked]:bg-accent-50">
+                            <input type="radio" name="user_type" value="TEACHER" class="hidden peer" {% if form.user_type.value == 'TEACHER' %}checked{% endif %}>
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white mb-3">
+                                    <i class="fas fa-chalkboard-teacher text-xl"></i>
+                                </div>
+                                <span class="font-medium text-gray-900">Teacher</span>
+                                <p class="text-xs text-gray-500 mt-1">Educator creating interventions</p>
+                            </div>
+                        </label>
+                        
+                        <label class="border border-gray-200 rounded-lg p-4 hover:border-accent-300 hover:shadow-sm transition-all cursor-pointer has-[:checked]:border-accent-500 has-[:checked]:bg-accent-50">
+                            <input type="radio" name="user_type" value="STUDENT" class="hidden peer" {% if form.user_type.value == 'STUDENT' %}checked{% endif %}>
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-white mb-3">
+                                    <i class="fas fa-user-graduate text-xl"></i>
+                                </div>
+                                <span class="font-medium text-gray-900">Student</span>
+                                <p class="text-xs text-gray-500 mt-1">Receiving interventions</p>
+                            </div>
+                        </label>
+                        
+                        <label class="border border-gray-200 rounded-lg p-4 hover:border-accent-300 hover:shadow-sm transition-all cursor-pointer has-[:checked]:border-accent-500 has-[:checked]:bg-accent-50">
+                            <input type="radio" name="user_type" value="PARENT" class="hidden peer" {% if form.user_type.value == 'PARENT' %}checked{% endif %}>
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white mb-3">
+                                    <i class="fas fa-user-friends text-xl"></i>
+                                </div>
+                                <span class="font-medium text-gray-900">Parent</span>
+                                <p class="text-xs text-gray-500 mt-1">Monitoring student progress</p>
+                            </div>
+                        </label>
+                    </div>
+                    {% if form.user_type.errors %}
+                    <div class="text-red-600 text-sm">{{ form.user_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Dynamic Form Fields -->
+                <div id="form-fields" class="space-y-6">
+                    <!-- Common Fields -->
+                    <div class="space-y-4">
+                        <h4 class="text-base font-medium text-gray-900 border-b border-gray-200 pb-2">Basic Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                {{ form.phone }}
+                            </div>
+                            <div>
+                                <label for="{{ form.profile_picture.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
+                                {{ form.profile_picture }}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+
+                    <!-- Teacher Specific Fields (initially hidden) -->
+                    <div id="teacher-fields" class="hidden space-y-4">
+                        <h4 class="text-base font-medium text-gray-900 border-b border-gray-200 pb-2">Teacher Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ teacher_form.qualification.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Qualification</label>
+                                {{ teacher_form.qualification }}
+                            </div>
+                            <div>
+                                <label for="{{ teacher_form.subjects.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Subjects</label>
+                                {{ teacher_form.subjects }}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="{{ teacher_form.join_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Join Date</label>
+                            {{ teacher_form.join_date }}
+                        </div>
+                    </div>
+
+                    <!-- Student Specific Fields (initially hidden) -->
+                    <div id="student-fields" class="hidden space-y-4">
+                        <h4 class="text-base font-medium text-gray-900 border-b border-gray-200 pb-2">Student Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ student_form.grade_level.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                                {{ student_form.grade_level }}
+                            </div>
+                            <div>
+                                <label for="{{ student_form.enrollment_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Enrollment Date</label>
+                                {{ student_form.enrollment_date }}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="flex items-center space-x-3">
+                                    {{ student_form.iep }}
+                                    <span class="text-sm font-medium text-gray-700">IEP Program</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="flex items-center space-x-3">
+                                    {{ student_form.ell }}
+                                    <span class="text-sm font-medium text-gray-700">ELL Program</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="{{ student_form.special_notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Special Notes</label>
+                            {{ student_form.special_notes }}
+                        </div>
+                    </div>
+
+                    <!-- Parent Specific Fields (initially hidden) -->
+                    <div id="parent-fields" class="hidden space-y-4">
+                        <h4 class="text-base font-medium text-gray-900 border-b border-gray-200 pb-2">Parent Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ parent_form.occupation.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Occupation</label>
+                                {{ parent_form.occupation }}
+                            </div>
+                            <div>
+                                <label for="{{ parent_form.employer.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Employer</label>
+                                {{ parent_form.employer }}
+                            </div>
+                        </div>
+                        <div>
+                            <label for="{{ parent_form.emergency_contact.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+                            {{ parent_form.emergency_contact }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="pt-6 border-t border-gray-200 flex justify-end">
+                    <button type="submit" class="px-6 py-3 bg-accent-600 hover:bg-accent-700 rounded-lg text-white font-medium transition-colors clean-button">
+                        <i class="fas fa-check-circle mr-2"></i>Complete Setup
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Style all inputs with clean design
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        if (input.type !== 'radio' && input.type !== 'checkbox' && input.type !== 'file') {
+            input.classList.add(
+                'w-full', 
+                'px-3', 
+                'py-2', 
+                'border', 
+                'border-gray-300', 
+                'rounded-lg', 
+                'text-sm', 
+                'focus:outline-none', 
+                'focus:ring-2', 
+                'focus:ring-accent-500', 
+                'focus:border-accent-500', 
+                'text-gray-900'
+            );
+        }
+    });
+
+    // Style file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.classList.add(
+            'block',
+            'w-full',
+            'text-sm',
+            'text-gray-600',
+            'file:mr-4',
+            'file:py-2',
+            'file:px-4',
+            'file:rounded-lg',
+            'file:border-0',
+            'file:text-sm',
+            'file:font-medium',
+            'file:bg-accent-600',
+            'file:text-white',
+            'hover:file:bg-accent-700',
+            'file:transition-colors'
+        );
+    }
+
+    // Style checkboxes
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.classList.add(
+            'w-4',
+            'h-4',
+            'text-accent-600',
+            'border-gray-300',
+            'rounded',
+            'focus:ring-accent-500'
+        );
+    });
+
+    // Show/hide role-specific fields based on selection
+    const roleRadios = document.querySelectorAll('input[name="user_type"]');
+    
+    function showRelevantFields() {
+        const selectedRole = document.querySelector('input[name="user_type"]:checked')?.value;
+        
+        // Hide all role-specific fields first
+        document.getElementById('teacher-fields').classList.add('hidden');
+        document.getElementById('student-fields').classList.add('hidden');
+        document.getElementById('parent-fields').classList.add('hidden');
+        
+        // Show the relevant fields
+        if (selectedRole === 'TEACHER') {
+            document.getElementById('teacher-fields').classList.remove('hidden');
+        } else if (selectedRole === 'STUDENT') {
+            document.getElementById('student-fields').classList.remove('hidden');
+        } else if (selectedRole === 'PARENT') {
+            document.getElementById('parent-fields').classList.remove('hidden');
+        }
+    }
+    
+    // Add event listeners
+    roleRadios.forEach(radio => {
+        radio.addEventListener('change', showRelevantFields);
+    });
+    
+    // Initialize on page load
+    showRelevantFields();
+});
+</script>
+{% endblock %}

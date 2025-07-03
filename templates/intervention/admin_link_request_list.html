@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Parent-Child Link Requests - Admin Review{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-2xl font-bold mb-6">Parent-Child Link Requests</h1>
+    <div class="space-y-6">
+        {% for req in link_requests %}
+            <div class="clean-card p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <div class="font-medium text-lg">{{ req.parent.user_profile.user.get_full_name }} → {{ req.student.user_profile.user.get_full_name }}</div>
+                    <div class="text-sm text-gray-500">Requested: {{ req.created_at|date:"M d, Y H:i" }}</div>
+                    <div class="text-sm text-gray-500">Status: <span class="font-semibold {% if req.status == 'APPROVED' %}text-green-600{% elif req.status == 'DENIED' %}text-red-600{% else %}text-yellow-600{% endif %}">{{ req.get_status_display }}</span></div>
+                    {% if req.message %}
+                        <div class="text-xs text-gray-700 mt-2"><span class="font-semibold">Parent Message:</span> {{ req.message }}</div>
+                    {% endif %}
+                    {% if req.status != 'PENDING' and req.admin_note %}
+                        <div class="text-xs text-gray-700 mt-2"><span class="font-semibold">Admin Note:</span> {{ req.admin_note }}</div>
+                    {% endif %}
+                </div>
+                {% if req.status == 'PENDING' %}
+                <form method="post" action="{% url 'intervention:admin-link-request-action' req.pk %}" class="flex flex-col md:flex-row gap-2 md:items-center">
+                    {% csrf_token %}
+                    <input type="text" name="admin_note" placeholder="Admin note (optional)" class="form-input px-3 py-2 border rounded text-sm" />
+                    <button name="action" value="approve" class="clean-button bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Approve</button>
+                    <button name="action" value="deny" class="clean-button bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Deny</button>
+                </form>
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="text-gray-500">No link requests found.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

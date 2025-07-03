@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Edit Milestone{% else %}Create New Milestone{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-4xl font-extrabold text-blue-800 flex items-center gap-2">
+            <i class="fas fa-flag-checkered text-blue-400"></i>
+            {% if form.instance.pk %}Edit Milestone{% else %}Create New Milestone{% endif %}
+        </h1>
+        {% if goal %}
+        <p class="text-blue-500 mt-2 text-lg">For goal: <span class="font-semibold text-blue-900">{{ goal.description|truncatechars:50 }}</span></p>
+        {% endif %}
+    </div>
+
+    <div class="bg-white border border-blue-100 rounded-2xl p-8 shadow-lg">
+        <form method="post" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Description Section -->
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-lg font-bold text-blue-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-flag"></i> Milestone Description *
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="mt-1 text-sm text-red-500">
+                        {% for error in form.description.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Target Date and Completion Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label for="{{ form.target_date.id_for_label }}" class="block text-lg font-bold text-blue-700 mb-2 flex items-center gap-2">
+                        <i class="fas fa-calendar-alt"></i> Target Date *
+                    </label>
+                    {{ form.target_date }}
+                    {% if form.target_date.errors %}
+                        <div class="mt-1 text-sm text-red-500">
+                            {% for error in form.target_date.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.completion.id_for_label }}" class="block text-lg font-bold text-blue-700 mb-2 flex items-center gap-2">
+                        <i class="fas fa-percentage"></i> Completion (0-100%) *
+                    </label>
+                    {{ form.completion }}
+                    {% if form.completion.errors %}
+                        <div class="mt-1 text-sm text-red-500">
+                            {% for error in form.completion.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Notes Section -->
+            <div>
+                <label for="{{ form.notes.id_for_label }}" class="block text-lg font-bold text-blue-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-sticky-note"></i> Notes (Optional)
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div class="mt-1 text-sm text-red-500">
+                        {% for error in form.notes.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Form-wide errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-100 border border-red-400 rounded-lg p-4">
+                    <h4 class="text-red-700 font-bold mb-2">Please correct the following errors:</h4>
+                    {% for error in form.non_field_errors %}
+                        <p class="text-red-600 text-sm">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4 pt-4 border-t border-blue-100">
+                <a href="{% if goal %}{% url 'intervention:goal-detail' goal.pk %}{% else %}{% url 'intervention:goal-list' %}{% endif %}" 
+                   class="px-4 py-2 border border-blue-400 rounded-lg text-blue-600 bg-white hover:bg-blue-50 font-semibold transition flex items-center gap-2">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold shadow flex items-center gap-2 transition">
+                    <i class="fas fa-save"></i>
+                    {% if form.instance.pk %}Update Milestone{% else %}Create Milestone{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Modern, high-contrast form field styling */
+    input, textarea, select {
+        background-color: #fff !important;
+        border: 1px solid #3b82f6 !important;
+        color: #1e293b !important;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-shadow: 0 1px 2px 0 #e0e7ef;
+    }
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 3px #3b82f655;
+        background-color: #f0f7ff !important;
+    }
+    label {
+        color: #2563eb !important;
+        font-weight: 700;
+    }
+    .bg-white {
+        background-color: #fff !important;
+    }
+    .border-blue-100 {
+        border-color: #dbeafe !important;
+    }
+    .shadow-lg {
+        box-shadow: 0 10px 20px 0 #dbeafe55, 0 2px 4px 0 #dbeafe33 !important;
+    }
+    .text-blue-700 {
+        color: #1d4ed8 !important;
+    }
+    .text-blue-900 {
+        color: #1e3a8a !important;
+    }
+    .text-blue-600 {
+        color: #2563eb !important;
+    }
+    .bg-blue-600 {
+        background-color: #2563eb !important;
+    }
+    .bg-blue-50 {
+        background-color: #eff6ff !important;
+    }
+    .hover\:bg-blue-700:hover {
+        background-color: #1d4ed8 !important;
+    }
+    .hover\:bg-blue-50:hover {
+        background-color: #dbeafe !important;
+    }
+    .text-white {
+        color: #fff !important;
+    }
+    .font-semibold {
+        font-weight: 600 !important;
+    }
+    .font-bold {
+        font-weight: 700 !important;
+    }
+    .rounded-lg {
+        border-radius: 0.5rem !important;
+    }
+    .rounded-2xl {
+        border-radius: 1rem !important;
+    }
+    .shadow {
+        box-shadow: 0 2px 8px 0 #dbeafe33 !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set minimum date to today for target date
+        const dateField = document.querySelector('input[type="date"]');
+        if (dateField && !dateField.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateField.setAttribute('min', today);
+        }
+
+        // Add input validation for completion percentage
+        const completionField = document.querySelector('input[name="completion"]');
+        if (completionField) {
+            completionField.addEventListener('input', function() {
+                let value = parseInt(this.value);
+                if (value < 0) this.value = 0;
+                if (value > 100) this.value = 100;
+            });
+        }
+
+        // Auto-resize textarea
+        const textarea = document.querySelector('textarea');
+        if (textarea) {
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+    });
+</script>
+{% endblock %}

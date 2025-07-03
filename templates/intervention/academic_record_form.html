@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}
+  {% if object %}Edit{% else %}Add{% endif %} Academic Record - PDIE System
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="clean-card rounded-lg p-8 shadow">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">
+        <i class="fas fa-book mr-2 text-accent-600"></i>
+        {% if object %}Edit Academic Record{% else %}Add New Academic Record{% endif %}
+      </h2>
+      <a href="{% url 'intervention:academic-record-list' %}" class="text-gray-400 hover:text-accent-600 transition-colors">
+        <i class="fas fa-times text-xl"></i>
+      </a>
+    </div>
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Student Field -->
+        <div>
+          <label for="{{ form.student.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-1">
+            <i class="fas fa-user-graduate mr-2 text-accent-600"></i>Student
+          </label>
+          {{ form.student|add_class:'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500' }}
+          {% if form.student.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.student.errors.as_text }}</p>
+          {% endif %}
+        </div>
+        <!-- Subject Field -->
+        <div>
+          <label for="{{ form.subject.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-1">
+            <i class="fas fa-book-open mr-2 text-accent-600"></i>Subject
+          </label>
+          {{ form.subject|add_class:'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500' }}
+          {% if form.subject.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.subject.errors.as_text }}</p>
+          {% endif %}
+        </div>
+        <!-- Score Field -->
+        <div>
+          <label for="{{ form.score.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-1">
+            <i class="fas fa-percentage mr-2 text-accent-600"></i>Score
+          </label>
+          {{ form.score|add_class:'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500' }}
+          {% if form.score.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.score.errors.as_text }}</p>
+          {% endif %}
+        </div>
+        <!-- Term Field -->
+        <div>
+          <label for="{{ form.term.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-1">
+            <i class="fas fa-calendar-alt mr-2 text-accent-600"></i>Term
+          </label>
+          {{ form.term|add_class:'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500' }}
+          {% if form.term.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.term.errors.as_text }}</p>
+          {% endif %}
+        </div>
+        <!-- Date Recorded Field -->
+        <div class="md:col-span-2">
+          <label for="{{ form.date_recorded.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-1">
+            <i class="fas fa-calendar-day mr-2 text-accent-600"></i>Date Recorded
+          </label>
+          {{ form.date_recorded|add_class:'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500' }}
+          {% if form.date_recorded.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.date_recorded.errors.as_text }}</p>
+          {% endif %}
+        </div>
+        <!-- Notes Field -->
+        <div class="md:col-span-2">
+          <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-1">
+            <i class="fas fa-sticky-note mr-2 text-accent-600"></i>Notes
+          </label>
+          {{ form.notes|add_class:'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500' }}
+          {% if form.notes.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.as_text }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+        <a href="{% url 'intervention:academic-record-list' %}" class="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Cancel</a>
+        <button type="submit" class="px-4 py-2 bg-accent-600 hover:bg-accent-700 rounded-lg text-white text-sm font-medium transition-colors clean-button">
+          <i class="fas fa-save mr-2"></i>{% if object %}Update{% else %}Save{% endif %} Record
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
